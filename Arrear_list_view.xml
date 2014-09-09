@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+    
+            
+            <record model="ir.ui.view" id="arrear_list_tree_view">
+                <field name="name">Arrear List.tree</field>
+                <field name="model">arrear.list</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="Arrear List" version="7.0">
+                        <field name="reg_no"/>
+                        <field name="wakf_id"/>
+                        
+                        <field name="account_year"/>
+                        <field name="assessment_year"/>
+                    </tree>
+                
+                    
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="arrear_list_form_view">
+                <field name="name">Arrear List.form</field>
+                <field name="model">arrear.list</field>
+                <field name="type">form</field>
+                <field name="arch" type="xml">
+                    <form string="Arrear List" version="7.0">
+                    <sheet>
+                    	<group>
+                    		<group>
+                    			<div class="oe_title">
+                            
+                            		<div class="oe_edit_only">
+                                		<label for="reg_no" string="Registration Number"/>
+                                	</div>
+                           		 	<h1>                          
+                                		<field name="reg_no" on_change="on_change_wakf_reg_no_to_arrear(reg_no)"/>
+                            		</h1>
+                        		</div>
+                        	</group>
+                        	<group></group>
+                        	<group>                       	                           		 	                         
+                                <field name="wakf_id"/> 
+                                <field name="all_wakf" on_change="on_change_all_wakf_arrear(all_wakf)"/>                   		
+                        	</group>
+                        	<group>
+                        		<field name="assessment_year"/>                        		
+                        		<!-- <field name="account_year1"/>
+                        		<field name="account_year2"/>-->
+                       	    </group>
+                          <!--	<group>
+                        		<field name="net_income"/>
+                        		<field name="contri_amount"/>
+                        	</group> -->
+                        </group>
+                        <notebook colspan="4">
+                        	<page string="Arrear List">
+                        		<field name="arrear_line" nolabel="1" widget="one2many_list">
+							 	 	<tree string="Arrear Lists" editable="bottom">
+							 	 		<field name="reg_no"/>
+										<field name="account_year_line"/>
+										<field name="assessment_year_line"/>
+										<field name="assess_amount"/>									
+										
+										<field name="contri_amount1"/>
+									</tree>
+								</field>
+								<group></group>
+					       		<group></group>	
+									<group class="oe_subtotal_footer oe_right">
+										<field name="net_income_assess"/>
+										<field name="contri_amount" class="oe_subtotal_footer_separator" widget="monetary"/>
+									    <!-- <button name="button_reset_taxes" string="(update)" type="object" class="oe_edit_only oe_link"/> -->
+									</group>
+								<group></group>					        	
+							</page>
+						</notebook>	
+                        </sheet>
+                    </form>
+                
+                </field>
+            </record>
+
+            <record model="ir.actions.act_window" id="action_arrear_list_tree_view">
+                <field name="name">Arrear List</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">arrear.list</field>
+		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
+                <field name="view_type">form</field>
+                <field name="view_mode">tree,form</field>
+                <field name="view_id" ref="arrear_list_tree_view"/>
+            </record>
+
+           <menuitem id="arrear_list_menu" name="Arrear List" parent="assessment_sub_head" sequence="2" action="action_arrear_list_tree_view"/>
+            
+    
+    </data>
+</openerp>

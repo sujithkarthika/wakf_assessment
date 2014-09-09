@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+    	<record model="ir.ui.view" id="assessment1_window_tree_view">
+                <field name="name">assessment.window.tree</field>
+                <field name="model">assessment.window</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="Assessment Tree" version="7.0">
+                        <field name="name"/>
+                        <field name="wakf_id"/>
+                        <field name="district"/>
+                        <field name="assess_year"/>
+                        <field name="acc_year"/>
+                        <field name="date_from"/>
+                        <field name="revised"/>
+                        <field name="state"/>
+                        
+                    </tree>
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="assessment1_window_form_view">
+                <field name="name">assessment.window.form</field>
+                <field name="model">assessment.window</field>
+                <field name="type">form</field>
+                <field name="arch" type="xml">
+                
+                    <form string="Assessment Form" version="7.0">
+                    <header>
+                    	<button name="action_submit" string="Submit" type="object" attrs="{'invisible':['|',('state','in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
+                    	<button name="action_sent_notice" string="Sent Notice" type="object" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','submitted')]}"/>
+                		<button name="action_invoice" string="Invoice" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('sent_notice'))]}"/>
+                		<button name="action_showcause" string="Sent ShowCause" type="object" icon="gtk-goto-last" attrs="{'invisible':['|',('state','!=','invoiced'),('showcause_tick','=',True)]}"/>
+                		<button name="action_appeal" string="Appeal Received" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('invoiced','showcause'))]}"/>
+                		<button name="action_RR" string="Send RR" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('showcause','appeal','invoiced'))]}"/>
+                		<button name="action_re_assess" string="Re-assessment" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','appeal')]}"/>
+                		<field name="state" widget="statusbar" statusbar_visible="submitted,sent_notice,invoiced,showcause,RR,appeal,re-assess,completed"
+                		/>
+                		
+                    </header>
+                    <sheet>
+                    	<group>
+                        <div class="oe_title">
+                            
+                            <div class="oe_edit_only">
+                                <label for="name" string="Registration Number"/>
+                                
+                            </div>
+                            <h1>
+                           
+                                <field name="name" on_change="on_change_wakf_regno_to_name_new_assess(name)"/>
+                      
+                            </h1>
+                            
+                            
+                        </div>
+                         
+                        <div class="oe_title">
+                       
+                            <div class="oe_edit_only">
+                                <label for="name" string="Account Year"/>
+                            </div>
+                            <h1>
+                                <field name="acc_year" on_change="on_change_acc_year_to_munbaki(name,acc_year)" placeholder="eg:2014"/>
+                            </h1>
+                          
+                        </div>
+                        </group>  
+                   		<group>
+                         <group>
+                         	<field name="revised"/>
+                         	<field name="appeal_no" attrs="{'invisible':[('revised','!=',True)]}"/>
+                         	<field name="appeal_details" attrs="{'invisible':[('revised','!=',True)]}"/>
+                         	<field name="appeal_date" attrs="{'invisible':[('revised','!=',True)]}"/>
+                        	<field name="wakf_id"/>
+                        	<field name="district"/>
+                        	<field name="taluk"/>
+                        	<field name="village"/>
+                         </group>
+                         <group>
+                        	<field name="date_from"/>
+                        	<field name="assess_year"/>
+                        	
+                         </group>
+                         <group>
+                         	<field name="showcause_notice_no" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
+                            <field name="showcause_tick" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
+                         	<field name="appeal_no" attrs="{'invisible':['|',('state','not in',('appeal','re-assess','completed'))]}"/>
+                            <field name="appeal_details" attrs="{'invisible':['|',('state','not in',('appeal','re-assess','completed'))]}"/>
+                         	<field name="appeal_date" attrs="{'invisible':['|',('state','not in',('appeal','re-assess','completed'))]}"/>
+                         </group>
+                         <group string="Kaivasam">
+                        	<field name="line_1"/>
+                        	<field name="line_2"/>
+                        	<field name="line_3"/>
+                         </group>
+                 
+                        </group>
+                        <notebook colspan="4">
+                        <page string="Income Details">
+                        	<field name="assess_line_id1" nolabel="1" widget="one2many_list">
+							 	 <tree string="Income Lines" editable="bottom">
+									<field name="statement_a"/>
+									<field name="description"/>
+									<!-- <field name="uom"/>								
+									<field name="amount"/>
+									<field name="quantity"/> -->									
+									<field name="unit_cost"/>
+								</tree>		
+								
+			
+							</field> 
+							<group></group>
+							<group class="oe_subtotal_footer oe_right">							 
+					  			<field name="amount_total1" class="oe_subtotal_footer_separator" widget="monetary"/>
+					        </group>
+					        <group class="oe_subtotal_footer oe_left" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}">
+	                        	<field name="total_income"/>
+	                        	<field name="exempted"/>
+	                        	<field name="total_income_final" class="oe_subtotal_footer_separator" widget="monetary"/>
+	                        	<field name="total_expense"/>
+	                        	<field name="deducted"/>
+	                        	<field name="total_expense_final" class="oe_subtotal_footer_separator" widget="monetary"/>
+                            </group>
+					       	<group>
+					       	</group>
+					       	 
+					                               
+                        </page>
+                        <page string="Expense Details">
+                        	<field name="assess_line_id2" nolabel="1" widget="one2many_list">
+                        		 <tree string="Expense Lines" editable="bottom">
+									<field name="statement_a"/>
+									<field name="description"/>
+									<!--<field name="uom"/>
+									<field name="amount"/>
+									<field name="quantity"/> -->									
+									<field name="unit_cost"/>
+								</tree>	
+							</field>
+							<group>
+					       	</group>
+					       	<group class="oe_subtotal_footer oe_right">
+							 
+								<field name="amount_total2" class="oe_subtotal_footer_separator" widget="monetary"/>
+					        </group>
+				<!--  	        <group class="oe_subtotal_footer oe_left" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}">
+	                        	<field name="total_income"/>
+	                        	<field name="exempted"/>
+	                        	<field name="total_income_final" class="oe_subtotal_footer_separator" widget="monetary"/>
+	                        	<field name="total_expense"/>
+	                        	<field name="deducted"/>
+	                        	<field name="total_expense_final" class="oe_subtotal_footer_separator" widget="monetary"/>
+                            </group>-->
+					       	<group>
+					       	</group>
+								
+                        </page>
+                        <page string="Follow Ups" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed','done'))]}">
+                        		<field name="follow_up_id" nolabel="1" widget="one2many_list">
+							 	 	<tree string="Follow Ups.." editable="bottom">
+							 	 		<field name="name"/>
+										<field name="who"/>
+										<field name="when"/>
+									</tree>
+								</field>							        	
+						</page>
+                        
+                        </notebook>
+               
+                       
+                    </sheet>
+                    </form>
+                 
+                </field>
+            </record>
+            
+          
+      
+            <!--  
+       			<report auto="False" id="report_id" model="model_name" 
+                name="report_name" rml="path/to/reportfile"
+                string="My Report"/>   -->
+     		
+
+            
+
+
+            <record model="ir.actions.act_window" id="action_assessment1_window_tree_view">
+                <field name="name">Assessment Details</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">assessment.window</field>
+		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
+                <field name="view_type">form</field>
+                <field name="view_mode">tree,form</field>
+                <field name="view_id" ref="assessment1_window_tree_view"/>
+            </record>
+            
+            <record id="assessmen_window_search_view" model="ir.ui.view">
+            <field name="name">Assessment Window</field>
+            <field name="model">assessment.window</field>
+            <field name="arch" type="xml">
+                <search string="Search">
+                <field name="name" string="Name" filter_domain="[()]"/>
+                <separator/>
+                <filter string="Submitted" name="open" domain="[('state','=','submitted')]" help="Open"/>
+                <filter string="Notice Send" name="open" domain="[('state','=','sent_notice')]" help="Open"/>
+                <filter string="Invoiced" name="open" domain="[('state','=','invoiced')]" help="Open"/>
+                <filter string="Showcause Send" name="open" domain="[('state','=','showcause')]" help="Open"/>
+                <filter string="RR Issued" name="open" domain="[('state','=','RR')]" help="Open"/>
+                <filter string="Appealed" name="open" domain="[('state','=','appeal')]" help="Open"/>
+                <filter string="Re-Assessment sanctioned" name="open" domain="[('state','=','re-assess')]" help="Open"/>
+                <filter string="Cancelled" name="open" domain="[('state','=','completed')]" help="Open"/>
+                
+                 <group expand="0" string="Group By...">
+              		<filter string="Register Number" domain="[]" context="{'group_by':'name'}"/>
+              		<filter string="Account Year" domain="[]" context="{'group_by':'acc_year'}"/>
+              		<filter string="Assessment Year" domain="[]" context="{'group_by':'assess_year'}"/>
+              		<filter string="Assess Date" domain="[]" context="{'group_by':'date_from'}"/>
+              		<filter string="District" domain="[]" context="{'group_by':'district'}"/>
+                 </group>
+  				 </search>
+            </field>
+        </record>
+
+		   	<!-- <menuitem id="assessment1_window_menu" name="assessment_window" parent="account.next_id_27" action="action_assessment1_window_tree_view"/>--> 
+           <menuitem id="assessment1_window_menu" name="Assessment Details" parent="account.menu_finance" sequence="1" />
+           <!-- ====================changing main menu & sub menus in accounting========== -->
+           <menuitem name="Accounting" id="account.menu_finance" groups="account.group_account_user,account.group_account_manager,account.group_account_invoice" sequence="50"/>
+		   <menuitem id="account.menu_finance_receivables" name="Wakf Transactions" parent="account.menu_finance" sequence="2"/>
+           
+    
+    </data>
+</openerp>

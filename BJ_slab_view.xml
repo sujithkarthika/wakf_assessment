@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+		
+            
+            <record model="ir.ui.view" id="bj_slab_tree_view">
+                <field name="name">BJ slab tree</field>
+                <field name="model">bj.slab</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="BJ Slab Tree">
+                        <field name="order_no"/>
+                        <field name="valid_from"/>
+                        <field name="description"/>
+                        <field name="approved"/>
+                    </tree>
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="bj_slab_form_view">
+                <field name="name">BJ Slab form</field>
+                <field name="model">bj.slab</field>
+                <field name="type">form</field>
+                <field name="arch" type="xml">
+                    <form string="BJ Slab Form" version="7.0">
+                    	<sheet>
+                    		<group>
+                    			<group>
+                        			<field name="order_no" select="1"/>
+                        			<field name="valid_from"/>
+                        			<field name="approved"/>
+                        			
+                        		</group>
+                        		<group>
+                        			<field name="description"/>
+                        		</group>
+                        	</group>
+                        	<notebook colspan="4">
+                        	<page string="BJ Slab Lines">
+                        		<field name="slab_id" nolabel="1" widget="one2many_list">
+							 	 	<tree string="Slab Lines" editable="bottom">
+							 	 		 <field name="sl_no"/>
+                        				 <field name="bj_amount_start"/>
+                        				 <field name="bj_amount_end"/>
+                        				 <field name="percentage"/>
+									</tree>
+								</field>				        	
+							</page>
+						</notebook>	
+                        </sheet>
+                    </form>
+                </field>
+            </record>
+
+            <record model="ir.actions.act_window" id="action_bj_slab_tree_view">
+                <field name="name">BJ Slab</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">bj.slab</field>
+		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
+                <field name="view_type">form</field>
+                <field name="view_mode">tree,form</field>
+                <field name="view_id" ref="bj_slab_tree_view"/>
+            </record>
+
+    
+    </data>
+</openerp>

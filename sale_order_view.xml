@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+	<data>
+	       <menuitem name="Wakf Registration" id="base.menu_base_partner" groups="base.group_sale_salesman,base.group_sale_manager"/>
+	       <menuitem id="base.menu_product" name="Wakf Properties" parent="base.menu_base_partner" sequence="9"/>
+          <!-- =====================Quotation/Sale order Form Inherit Start======================================= -->
+          <!-- ============================================================================================= -->
+  			<record id="view_sale_order_inherited" model="ir.ui.view">
+  			<field name="name">view.sale.orderr.inherited</field>
+  			<field name="model">sale.order</field>
+  			<field name="inherit_id" ref="sale.view_order_form" />
+  			<field name="arch" type="xml">
+  			  
+  			 <!--   ======not needed======done in py file======
+  			   <field name="partner_id" position="replace" >
+  			   		<field name="partner_id" on_change="onchange_partner_id(partner_id, context)" domain="[('customer','=',True)]" context="{'search_default_customer':1, 'show_address': 1}" options="{"always_reload": True}"/>
+
+  			   </field> -->
+  			   
+  			   <field name="client_order_ref" position="replace" >
+  			   		<field name="client_order_ref" string="Wakf Reference"/>
+  			   </field>
+  			   <field name="shop_id" position="replace" >
+  			   		<field name="shop_id" string="Wakf Office Name"/>
+  			   </field>
+  			   
+  			   <xpath expr="//button[@name='action_button_confirm']" position="replace">
+  			   <button name="action_button_confirm" states="draft" string="Confirm" type="object" groups="base.group_user"/>
+  			   </xpath>
+  			   
+  			   <xpath expr="//button[@name='cancel']" position="replace">
+  			   <button name="cancel" states="draft" string="Cancel" type="object" groups="base.group_user"/>
+  			   </xpath>
+  			   			   
+  			   <xpath expr="//button[@name='copy_quotation']" position="replace">
+  			   <button name="copy_quotation" states="cancel" string="New Copy of Assessment" type="object"/>
+  			   </xpath>
+  			   
+  			   <xpath expr="//page[@string='Order Lines']/field[@name='order_line']/tree[@string='Sales Order Lines']/field[@name='product_id']" position="replace">
+            	   <field name="product_id" string="Property Name"/>
+        	   </xpath>
+  			     				
+        	   
+        	   <xpath expr="//notebook/page[@string='Other Information']/group/group[1]/field[@name='user_id']" position="replace"></xpath>
+  			   <xpath expr="//notebook/page[@string='Other Information']/group/group[1]" position="inside">			
+       		   <field name="user_id" string="Assessment Officer"/></xpath>
+       		   
+       		   <xpath expr="/form/header/field[@name='state']" position="replace">
+            		<field name="state" widget="statusbar" statusbar_visible="draft,sent,progress,done" statusbar_colors='{"invoice_except":"red","waiting_date":"blue"}'/>
+        	   </xpath>
+       		   
+       		   
+        	   <xpath expr="/form/sheet/h1" position="replace">
+                <h1>
+                    <label string="Assessment " attrs="{'invisible': [('state','not in',('draft','sent','waitingdocs'))]}"/>
+                    <label string="Assessment Order " attrs="{'invisible': [('state','in',('draft','sent','waitingdocs'))]}"/>
+                    <field name="name" class="oe_inline" readonly="1"/>
+                </h1>
+               </xpath>	
+               <!-- ==========new fields in sale order======================== -->
+               
+               <xpath expr="//form/sheet/group" position="inside">
+                 <group>
+                 	<field name="total_income_saleorder"/>
+                    <field name="total_expense_saleorder"/>
+               	    <field name="assess_year_saleorder"/>
+               	 </group>
+               	 <group>
+               	    <field name="cash_hand_saleorder"/>
+               		<field name="cash_bank_saleorder"/>
+               	</group>
+               </xpath>
+               
+               <xpath expr="//form/sheet/group/group[1]" position="before">
+               	     
+             	    <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="name" string="Registration No:"/>
+                            </div>
+                            <h1>
+                                <field name="registration_no" on_change="on_change_wakf_regno_to_name(registration_no)"/>
+                            </h1>
+                       </div>
+                       <group></group>
+               </xpath>
+
+                 <!-- ==========new fields in sale order END======================== -->
+       		   		   	  
+  			</field>
+  			</record>
+  		<!-- =====================Quotation/Sale order Form Inherit end======================================= -->
+  		
+  		<!-- =====================Quotation/Sale order Tree Inherit Start======================================= -->
+  		<!-- ============================================================================================= -->
+  				<record id="view_sale_order_quotation_tree_inherited" model="ir.ui.view">
+  				<field name="name">view.sale.order.quotation.tree.inherited</field>
+  				<field name="model">sale.order</field>
+  				<field name="inherit_id" ref="sale.view_quotation_tree" />
+  				<field name="arch" type="xml">
+  					<xpath expr="//tree[@string='Quotation']" position="attributes">
+    				    <attribute name="string">Servicios</attribute>
+ 				    </xpath>
+  					<field name="name" position="replace">
+  						<field name="name" string="Assessment Number"/>
+  					</field>
+  					<field name="user_id" position="replace">
+  						<field name="user_id" string="Asseement Officer"/>
+  					</field>
+  					<field name="partner_id" position="replace">
+  						<field name="partner_id" string="Wakf Name"/>
+  					</field>
+  				</field>
+  				</record>
+  				
+  		<!-- =====================Quotation/Sale order Tree Inherit end======================================= -->
+  		
+  		<!-- =====================Product Form Inherit Start======================================= -->	
+  		 <!-- ============================================================================================= -->
+  		
+  			    <record model="ir.ui.view" id="product_product_form_view">
+                <field name="name">product.product.form</field>
+                <field name="model">product.product</field>
+                <field name="type">form</field>
+                <field name="inherit_id" ref="product.product_normal_form_view" />
+                <field name="arch" type="xml">
+                     
+                   <!--   <field name="categ_id" position="replace" />
+                    <xpath expr="//div[@class='oe_edit_only']" position="replace">-->
+                    <xpath expr="//div[@class='oe_title']" position="replace">
+                    <div class="oe_title">
+
+                    <div class="oe_edit_only">
+                        <label for="name" string="Name"/>
+                    </div>
+                    <h1>
+                    	<field name="name"/>
+                    </h1>
+                    <label for="categ_id" class="oe_edit_only"/>
+                    <h2><field name="categ_id"/></h2>
+                	<!-- </xpath>
+                	<xpath expr="//div[@name='options']" position="replace">-->
+                	
+                     <div name="options">
+                    	 
+                          <field name="sale_ok" invisible="1"/>                                                                
+                     </div>
+                    
+                <!-- 	</xpath>
+                	<xpath expr="//div[@name='options']" position="inside"> 
+                	-->
+                	
+                	<div>
+                		<field name="income" attrs="{'readonly':[('expense', '=', True)]}"/>
+                        <label for="income" string="Income Property" />
+                        <field name="expense" attrs="{'readonly':[('income', '=', True)]}"/>
+                        <label for="expense" string="Expense Property"/>
+                                                                    
+                    </div>
+                    
+                    
+					<group><group>
+                           <field name="percentage_income" attrs="{'invisible':[('income', '=', False)]}" />								       
+                           <field name="deductable" attrs="{'invisible':[('expense', '=', False)]}" />
+                          
+                           <field name="related_id" attrs="{'invisible':[('deductable', '=', False)]}" />
+                           <field name="percentage_expense" attrs="{'invisible':[('expense', '=', False)]}" />
+                           
+                    </group></group>                     
+                     
+                     
+                </div>
+                	
+                </xpath>
+                <xpath expr="//form/sheet" position="inside">
+                <group><group><group>
+                		<field name="remarks1"/>
+                </group></group></group>
+                </xpath>
+    				
+                 <!--   <xpath expr="//notebook/page[@string='Information']/group/group[1]/field[@name='type']" position="attribute"/>
+    					<attribute name="invisible">1</attribute>
+                   </xpath>
+            	    	<xpath expr="//notebook/page[@string='Information']/group/group[1]" position="inside">	
+            	   		<field name="type" string="Property Type"/> 
+            	   		<field name="active"/>
+            	   		</xpath>-->
+            	   	<xpath expr="//notebook/page[@string='Information']/group/group[1]/field[@name='list_price']" position="replace"/>
+            	   	<xpath expr="//notebook/page[@string='Information']/group/group[1]" position="inside">	
+            	   		<field name="list_price" string="Property Value"/></xpath>
+            	   		
+            	   	<xpath expr="//page[@string='Procurements']" position="attributes" >
+    					<attribute name="invisible">1</attribute>
+				  	</xpath>
+				  	<xpath expr="//page[@string='Inventory']" position="attributes" >
+    					<attribute name="invisible">1</attribute>
+				  	</xpath>
+				  	<!-- 
+				  	<xpath expr="//page[@string='Accounting']" position="attributes" >
+    					<attribute name="invisible">1</attribute>
+				  	</xpath> -->
+				  	<xpath expr="//page[@string='Information']" position="attributes" >
+    					<attribute name="invisible">1</attribute>
+				  	</xpath>
+
+           <!-- 	   	<xpath expr="//notebook/page[@string='Procurements']/group/group[@name='procurement_uom']" position="replace"> 
+            	   	<group name="procurement_uom" groups="product.group_uom" string="Unit Of Measure">
+                         <field name="uom_po_id" string="Unit of Measure"/>
+                    </group>
+                    </xpath>   
+                    
+                  
+                    
+                      <xpath expr="//notebook/page[@string='Procurements']/group/group[@name='general']" position="replace"/>
+                  
+                    <xpath expr="//notebook/page[@string='Procurements']" position="inside">
+                    	<seperator string="Procurements Over" position="replace"></seperator>
+                    </xpath>
+                    <xpath expr="//notebook/page[@string='Procurements']/field[@name='description_purchase']" position="replace"/>  -->
+                    
+            	    <xpath expr="//notebook/page[@string='Information']/group/group[2]/div[@name='ean']/field[@name='ean13']" position="replace"/>	
+  			     		
+  			<!--     	  	<xpath expr="//notebook/page[@string='Inventory']" position="replace"/>   -->
+  			   	  	
+  			   		
+  			   	 	<xpath expr="//notebook/page[@string='Sales']" position="replace"/>	
+  			   	 	
+  			   	 	
+  			   	 
+                    
+                </field>
+            </record>
+       
+         <!-- =====================Product Form Inherit End======================================= -->
+         
+          <!-- =====================Product Tree Inherit Start======================================= -->
+               <record model="ir.ui.view" id="product_tree_view">
+                <field name="name">product.product.tree.inherit</field>
+                <field name="model">product.product</field>
+                <field name="type">form</field>
+                <field name="inherit_id" ref="product.product_product_tree_view" /> 
+                <field name="arch" type="xml">
+                	<xpath expr="//tree/field[@name='qty_available']" position="attributes" >
+    					<attribute name="invisible">1</attribute>
+				  	</xpath>
+				  	<xpath expr="//tree/field[@name='virtual_available']" position="attributes" >
+    					<attribute name="invisible">1</attribute>
+				  	</xpath>
+				  	<xpath expr="//tree/field[@name='lst_price']" position="attributes" >
+    					<attribute name="invisible">1</attribute>
+				  	</xpath>
+				  	<xpath expr="//tree/field[@name='state']" position="attributes" >
+    					<attribute name="invisible">1</attribute>
+				  	</xpath>
+				  	<xpath expr="//tree" position="inside" >
+				  		<field name="income"/>				  		
+				  		<field name="percentage_income"/>
+				  		<field name="expense"/>
+				  		<field name="percentage_expense"/>
+				  		<field name="deductable"/>
+				  		<field name="related_id"/>
+				  	</xpath>
+				  	
+                </field>
+                </record>
+              
+          
+            <!-- =====================Product Tree Inherit End======================================= -->
+         
+         <!-- =====================Product Kanban Inherit Start======================================= -->
+         		<record model="ir.ui.view" id="product_kanban_view">
+                <field name="name">product.product.kanban.inherit</field>
+                <field name="model">product.product</field>
+                <field name="type">form</field>
+                <field name="inherit_id" ref="product.product_kanban_view" /> 
+                <field name="arch" type="xml">
+                	<xpath expr="//kanban/templates/t/div[@class='oe_kanban_vignette oe_semantic_html_override']/div[@class='oe_kanban_details']/ul/li" position="replace"/>
+             		
+                </field>
+                </record>
+                
+         
+         <!-- =====================Product Kanban Inherit Stop======================================= -->
+         <!-- =====================Label sale order Inherit Start======================================= -->	
+  		 <!-- ============================================================================================= --> 
+  		     
+  		       <record model="ir.ui.view" id="sale_order_label_form_view">
+                <field name="name">sale.order.label.form</field>
+                <field name="model">sale.order</field>
+                <field name="type">form</field>
+                <field name="inherit_id" ref="sale.view_order_tree" /> 
+                <field name="arch" type="xml">
+                <tree string="Sales Orders" position="replace">
+                     <tree string="Wakf Assessment" fonts="bold:message_unread==True" colors="grey:state=='cancel';blue:state in ('waiting_date','manual');red:state in ('invoice_except','shipping_except')"/>
+                </tree>
+                </field>
+                </record>
+                
+  		 
+  		 <!-- =====================Label sale order Inherit End======================================= --> 
+  		 
+  		 <!-- =====================Search view Inherit Start======================================= -->	
+  		 <!--  =============================================================================================-->			
+  		        <record model="ir.ui.view" id="sale_order_search_form_view">
+                <field name="name">res.partner.search.view</field>
+                <field name="model">res.partner</field>
+                <field name="type">search</field>
+                <field name="inherit_id" ref="base.view_res_partner_filter" /> 
+                <field name="arch" type="xml">
+                	<xpath expr="//filter[@string='Customers']" position="replace">
+                		<filter string="Wakfs" name="customer" domain="[('customer','=',1)]" help="Customer Partners"/>
+                	
+
+                	</xpath>
+                	<xpath expr="//filter[@help='My Partners']" position="replace"></xpath>
+                	<xpath expr="//filter[@string='Persons']" position="replace"></xpath>
+                	<xpath expr="//filter[@string='Salesperson']" position="replace"></xpath>
+                	<xpath expr="//filter[@string='Country']" position="replace"></xpath>
+                   <!--   <xpath expr="//filter[@string='Suppliers']" position="replace">
+                    	<filter string="Others" name="supplier" domain="[('supplier','=',1)]" help="Supplier Partners"/>
+                    </xpath> -->
+                </field>
+                </record>
+  		
+  	  <!-- =====================Search viewInherit End======================================= --> 
+  	
+  <!-- =====================product Filter Start======================================= -->	
+  <!-- =============================================================================================-->
+  	
+  				<record id="inherited_product_search_form_view" model="ir.ui.view">
+            	<field name="name">product.search.form.inherit</field>
+            	<field name="model">product.product</field>
+            	<field name="type">search</field>
+            	<field name="inherit_id" ref="product.product_search_form_view"/>
+            	<field name="arch" type="xml">
+                <xpath expr="//filter[@string='Can be Sold']" position="replace">
+                    <filter string="Can be Assessable" name="filter_to_sell" icon="terp-accessories-archiver-minus" domain="[('sale_ok','=',1)]"/>
+                </xpath>
+             
+                
+            	</field>
+            	</record>	
+   	<!-- =====================Search viewInherit End======================================= -->    
+   	
+   	<!-- =====================sale order line Filter Start======================================= -->	
+  <!-- =============================================================================================-->
+  	
+  				<record id="inherited_product_search_form_view" model="ir.ui.view">
+            	<field name="name">sale.order.search1.form.inherit</field>
+            	<field name="model">sale.order</field>
+            	<field name="type">search</field>
+            	<field name="inherit_id" ref="sale.view_sales_order_filter"/>
+            	<field name="arch" type="xml">
+                <xpath expr="//filter[@string='Quotations']" position="replace">
+                     <filter icon="terp-document-new" string="Assessments" name="draft" domain="[('state','in',('draft','sent'))]"/>
+                </xpath>
+                <xpath expr="//filter[@string='Sales']" position="replace">
+                      <filter icon="terp-check" string="Assessment Orders" name="sales" domain="[('state','in',('manual','progress'))]"/>
+                </xpath>
+                <xpath expr="//filter[@string='My Sales Orders']" position="replace"/>
+                <xpath expr="//filter[@string='Customer']" position="replace">
+                      <filter string="Wakfs" icon="terp-personal" domain="[]" context="{'group_by':'partner_id'}"/>
+                </xpath>
+                <xpath expr="//filter[@string='Salesperson']" position="replace"/>
+                                                      
+            	</field>
+            	</record>	
+   	<!-- =====================sale order line End======================================= -->  
+  	</data>
+</openerp>

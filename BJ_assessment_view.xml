@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+    	
+            
+            <record model="ir.ui.view" id="bj_assessment_window_tree_view">
+                <field name="name">BJ Assessment Window tree</field>
+                <field name="model">bj.assessment.window</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="BJ Assessment" version="7.0" colors="blue:state == 'draft';black:state == 'approved';red:state == 'cancelled';gray:state == 're_assessment'">
+                        <field name="reg_no"/>
+                        <field name="wakf_id"/>
+                        <field name="ass_date"/>
+                        <field name="account_year"/>
+                        <field name="assessment_year"/>
+                        <field name="contribution" sum="Total Amount"/>
+                        <field name="state"/>
+                    </tree>
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="bj_assessment_window_form_view">
+                <field name="name">BJ Assessment Window form</field>
+                <field name="model">bj.assessment.window</field>
+                <field name="type">form</field>
+                <field name="arch" type="xml">
+                    <form string="BJ Assessment" version="7.0">
+                    <header>
+                    	
+                    	<button name="action_approve" states="draft" string="Approve" type="object" icon="gtk-go-forward"/>
+                		<button name="action_send" states="approved" string="Send BJ" type="object" icon="gtk-go-forward"/>
+                		<button name="action_cancel" states="approved" string="Cancel BJ" type="object" icon="gtk-goto-last"/>
+                		<button name="action_re_assessment" states="send" string="Cancel and Re-Assessment" type="object" icon="gtk-go-forward"/>
+                		<field name="state" widget="statusbar" statusbar_visible="draft,approved,send,re_assessment,cancelled"/>
+                    </header>
+                    <sheet>
+                    	<group>
+                    		<group>
+                    			<div class="oe_title">
+                            
+                            		<div class="oe_edit_only">
+                                		<label for="reg_no" string="Registration Number"/>
+                                	</div>
+                           		 	<h1>                          
+                                		<field name="reg_no"/>
+                            		</h1>
+                        		</div>
+                        	</group>
+                        	<group></group>
+                        	<group>                       	                           		 	                         
+                                <field name="wakf_id"/>
+                                <field name="assessment_year"/>
+                                <field name="account_year"/>
+                                <field name="ass_date"/> 
+                                                     		
+                        	</group>
+                        	<group>
+                        		<field name="net_assess"/>
+                        		<field name="net_bj"/>
+                        		<field name="contribution"/>
+                        		
+                       	    </group>
+                          
+                        	
+                        </group>
+                        <notebook colspan="4">
+                        	<page string="Follow Ups" attrs="{'invisible':['|',('state','not in',('approved','send','cancelled'))]}">
+                        		<field name="follow_line_id" nolabel="1" widget="one2many_list">
+							 	 	<tree string="Follow Ups.." editable="bottom">
+							 	 		<field name="name"/>
+										<field name="who"/>
+										<field name="when"/>
+									</tree>
+								</field>							        	
+						</page>
+                        </notebook>	
+                        </sheet>
+                    </form>
+                </field>
+            </record>
+
+            <record model="ir.actions.act_window" id="action_bj_assessment_window_tree_view">
+                <field name="name">BJ Assessment</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">bj.assessment.window</field>
+		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
+                <field name="view_type">form</field>
+                <field name="view_mode">tree,form</field>
+                <field name="view_id" ref="bj_assessment_window_tree_view"/>
+            </record>
+            
+            <record id="bj_assessment_window_search_view" model="ir.ui.view">
+            <field name="name">BJ Assessment Search</field>
+            <field name="model">bj.assessment.window</field>
+            <field name="arch" type="xml">
+                <search string="Search">
+                <field name="reg_no" string="Registration No" filter_domain="[()]"/>
+                <separator/>
+                <filter string="Approved BJ" name="open" domain="[('state','=','approved')]" help="Approved BJ"/>
+                <filter string="Send BJ" name="open" domain="[('state','=','send')]" help="Send BJ"/>
+                <filter string="Moved to Re-Assessment" name="open" domain="[('state','=','re-assessment')]" help="Re assessed BJ"/>
+                <filter string="Cancelled" name="open" domain="[('state','=','cancelled')]" help="Cancelled BJ"/>
+                
+                 <group expand="0" string="Group By...">
+              		<filter string="Register Number" domain="[]" context="{'group_by':'reg_no'}"/>
+              		<filter string="Account Year" domain="[]" context="{'group_by':'account_year'}"/>
+              		<filter string="Assessment Year" domain="[]" context="{'group_by':'assessment_year'}"/>
+              		<filter string="BJ Creation Date" domain="[]" context="{'group_by':'ass_date'}"/>
+                 </group>
+  				 </search>
+            </field>
+        </record>
+        
+        <record id="action_partner_supplier_form_demo" model="ir.actions.act_window">
+			<field name="name">Suppliers</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">res.partner</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="auto_refresh">10</field>
+			<field name="view_mode">kanban,tree,form</field>
+			<field name="context">{'search_default_supplier': 1,'default_customer': 0,'default_supplier': 1,'default_is_wakf': 0}
+			</field>
+			<field name="filter" eval="True"/>
+			<field name="help" type="html">
+			<p class="oe_view_nocontent_create">Click to add a contact in your address book.</p>
+			<p>
+			OpenERP helps you easily track all activities related to a supplier: discussions, history of purchases, documents, etc.
+			</p>
+			</field>
+		</record>
+		
+    		
+			
+    
+    
+    
+    </data>
+</openerp>

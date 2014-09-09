@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>       
+            
+            <record model="ir.ui.view" id="wakf_assesment_heads_tree_view">
+                <field name="name">wakf.assesment.head.tree</field>
+                <field name="model">wakf.assesment.head</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="Assesment Heads">
+                        <field name="name"/>
+                        <field name="classification"/>
+                        <field name="Details"/>
+                        <field name="is_assessiable"/>
+                    </tree>
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="wakf_assesment_heads_form_view">
+                <field name="name">wakf.assesment.head.form</field>
+                <field name="model">wakf.assesment.head</field>
+                <field name="type">form</field>
+                <field name="arch" type="xml">
+                    <form string="Assessment Head" version="7.0">
+                    <sheet>
+                       <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="name" string="Heads"/>
+                            </div>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                       </div>
+                    <group>
+                    <group>
+                        <field name="classification"/>
+                        <field name="Details"/>
+                        <field name="is_assessiable"/>
+                    </group> 
+                    </group>
+                    </sheet>
+                    </form>
+                </field>
+            </record>
+
+            <record model="ir.actions.act_window" id="action_wakf_assesment_heads_tree_view">
+                <field name="name">Assesment Head</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">wakf.assesment.head</field>
+		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
+                <field name="view_type">form</field>
+                <field name="view_mode">tree,form</field>
+                <field name="view_id" ref="wakf_assesment_heads_tree_view"/>
+            </record>
+
+			<menuitem id="wakf_assesment_heads_menu" name="Assesment Heads" parent="base.menu_sales" action="action_wakf_assesment_heads_tree_view"/>
+
+    
+    </data>
+</openerp>

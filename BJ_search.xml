@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+    	
+            
+            <record model="ir.ui.view" id="bj_assessment_tree_view">
+                <field name="name">BJ Assessment tree</field>
+                <field name="model">bj.assessment</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="BJ Assessment" version="7.0">
+                        <field name="reg_no"/>
+                        <field name="wakf_id"/>
+                        <field name="assess_year"/>
+                        <field name="account_year"/>
+                        <field name="assessment_year"/>
+                    </tree>
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="bj_assessment_form_view">
+                <field name="name">BJ Assessment form</field>
+                <field name="model">bj.assessment</field>
+                <field name="type">form</field>
+                <field name="arch" type="xml">
+                    <form string="BJ Assessment" version="7.0" create="false">
+                    <header>
+                    	
+                    	<button name="action_approve" string="Authenticate" type="object" icon="gtk-go-forward"/>	
+                		
+                    </header>
+                    <sheet>
+                    	<group>
+                    		<group>
+                    			<div class="oe_title">
+                            
+                            		<div class="oe_edit_only">
+                                		<label for="reg_no" string="Registration Number"/>
+                                	</div>
+                           		 	<h1>                          
+                                		<field name="reg_no" on_change="on_change_wakf_regno_to_name_new_assess(reg_no)"/>
+                            		</h1>
+                        		</div>
+                        	</group>
+                        	<group></group>
+                        	<group>                       	                           		 	                         
+                                <field name="wakf_id"/> 
+                                <field name="all_wakf" on_change="on_change_all_wakf_bj(all_wakf)"/>                     		
+                        	</group>
+                        	<group>
+                        		<field name="assessment_year"/>
+                        		<field name="year_pending"/>                        		
+                        		<!-- <field name="account_year1"/>
+                        		<field name="account_year2"/>-->
+                       	    </group>
+                          	<group string="History of last Transaction">
+                        		<field name="year_registration"/>
+                        		<field name="last_paid"/>
+                        		<field name="last_paid_amount"/>
+                        		<field name="for_year"/>
+                        		
+                        	</group>
+                        	
+                        </group>
+                        <notebook colspan="4">
+                        	<page string="BJ Lines">
+                        		<field name="bj_line_id" nolabel="1" widget="one2many_list" colspan="4" options="{'reload_on_button': true}">
+							 	 	<tree string="BJ Lines" editable="bottom" create="false" delete="false" version="7.0">
+							 	 		<field name="reg_no"/>
+										<field name="account_year_line"/>
+										<field name="assessment_year_line"/>
+										<field name="assess_amount"/>									
+										<field name="net_income1"/>
+										<field name="contri_amount1"/>
+										<button name="button_bj" string="Add" type="object" icon="gtk-go-forward" />
+									</tree>
+								</field>
+								<group></group>
+					       		<group></group>	
+									<group class="oe_subtotal_footer oe_right">
+										<field name="net_income"/>
+										<field name="net_income_assess"/>
+										<field name="contri_amount" class="oe_subtotal_footer_separator" widget="monetary"/>
+									    <button name="open_popup" string="(update..)" type="object" class="oe_edit_only oe_link"/>
+									    
+									</group>
+								<group></group>					        	
+							</page>
+							
+						</notebook>	
+                        </sheet>
+                    </form>
+                </field>
+            </record>
+
+            <record model="ir.actions.act_window" id="action_bj_assessment_tree_view">
+                <field name="name">BJ Assessment</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">bj.assessment</field>
+		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
+                <field name="view_type">form</field>
+                <field name="view_mode">form</field>
+                <field name="view_id" ref="bj_assessment_tree_view"/>
+            </record>
+            
+            
+
+			
+    
+    </data>
+</openerp>

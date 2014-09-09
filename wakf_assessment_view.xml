@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>             
+            <record model="ir.ui.view" id="wakf_assesment_tree_view">
+                <field name="name">wakf.assesment.tree</field>
+                <field name="model">wakf.assesment</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="Assesments">
+                        <field name="wakf_id"/>
+                         <field name="name"/>
+                         <field name="assesment_date_from"/>
+                         <field name="assesment_date_to"/>
+                         <field name="total_income"/>
+                         <field name="total_expense"/>
+                         <field name="assesment_amount"/>
+                         <field name="contribution_amount"/>
+                    </tree>
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="wakf_assesment_form_view">
+                <field name="name">wakf.assesment.form</field>
+                <field name="model">wakf.assesment</field>
+                <field name="type">form</field>
+                <field name="arch" type="xml">
+                    <form string="form_string" version="7.0">
+                         <sheet>
+                      	 <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="name" string="Assesment Description"/>
+                            </div>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                            </div>
+                            <group>
+                                 <group>
+                                     	<field name="wakf_id"/>
+                                     	                       
+                         				<field name="assesment_date_from"/>
+                         				<field name="assesment_date_to"/>                         				                               
+                                 </group> 
+                                 <group>
+                                        <field name="total_income"/>
+                         				<field name="total_expense"/>
+                         				<field name="assesment_amount"/>
+                         				<field name="contribution_amount"/>                                  
+                                 </group>                           
+                            </group>
+                           <notebook>                           
+                           		<page string="Income Details">
+                         				<field name="income_id"/>                     
+                     			</page>
+                      			<page string="Expense Details">
+                         				<field name="expense_id"/>                     
+                     			</page>
+                     		</notebook>
+                        </sheet>
+                    </form>
+                </field>
+            </record>
+
+            <record model="ir.actions.act_window" id="action_wakf_assesment_tree_view">
+                <field name="name">Assesment Details</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">wakf.assesment</field>
+		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
+                <field name="view_type">form</field>
+                <field name="view_mode">tree,form</field>
+                <field name="view_id" ref="wakf_assesment_tree_view"/>
+            </record>
+            
+            <record model="ir.ui.view" id="wakf_assesment_income_tree_view">
+                <field name="name">wakf.assesment.income.tree</field>
+                <field name="model">wakf.assesment.income</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="tree_string">
+                        <field name="assesment_head_id"/>
+                        <field name="name"/>
+                        <field name="amount"/>
+                    </tree>
+                </field>
+            </record>
+            
+             <record model="ir.ui.view" id="wakf_assesment_expense_tree_view">
+                <field name="name">wakf.assesment.expense.tree</field>
+                <field name="model">wakf.assesment.expense</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="tree_string">
+                        <field name="assesment_head_id"/>
+                        <field name="name"/>
+                        <field name="amount"/>
+                    </tree>
+                </field>
+            </record>
+            
+            
+            
+            
+        
+		<menuitem id="wakf_assesment_details_menu" name="Assesment" parent="base.menu_sales" action="action_wakf_assesment_tree_view"/>
+
+           
+       <!-- ======================================  Main Menus ======================================= --> 
+			<menuitem id="assessment_main_menu" name="Assessment" parent="" />
+			<menuitem id="bj_main_menu" name="BJ-Assessment" parent="" />
+	   <!-- ======================================  Main Menus ======================================= -->
+		
+	   <!-- ======================================  Sub Menus ======================================= -->		
+			
+			<menuitem id="assessment_sub_head" name="Assessment" parent="assessment_main_menu" />
+			<menuitem id="bj_sub_head" name="BJ-Assessment" parent="bj_main_menu" />
+	   <!-- ======================================  Sub Menus ======================================= -->
+	   
+	   	  			
+	  <!-- ====================================== Assessment Action Menus ======================================= -->
+            <menuitem id="assessment1_window_menu_1" name="Assessment" parent="assessment_sub_head" sequence="1" action="action_assessment1_window_tree_view"/>
+			
+			<menuitem id="show_cause_menu" name="show cause" parent="assessment_sub_head" sequence="3" action="action_show_cause_tree_view"/>
+	  
+	  <!-- ====================================== BJ Action Menus ======================================= -->
+			<menuitem id="bj_assessment_window_menu" name="BJ Assessment" parent="bj_sub_head" sequence="1" action="action_bj_assessment_window_tree_view"/>
+			<menuitem id="bj_assessment_menu" name="Check BJ" parent="bj_sub_head" sequence="2" action="action_bj_assessment_tree_view"/>
+			<menuitem id="bj_slab_menu" name="BJ Slab settings" parent="bj_sub_head" sequence="4" action="action_bj_slab_tree_view"/>
+			<menuitem id="revenue_recovery_menu" name="Revenue Recovery" parent="bj_sub_head" sequence="3" action="action_revenue_recovery_tree_view"/>
+			
+			
+    </data>
+</openerp>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+    	
+            
+            <record model="ir.ui.view" id="revenue_recovery_tree_view">
+                <field name="name">Revenue Recovery tree</field>
+                <field name="model">revenue.recovery</field>
+                <field name="type">tree</field>
+                <field name="arch" type="xml">
+                    <tree string="Revenue Recovery Tree" version="7.0" colors="blue:state == 'submitted';black:state == 'approve';red:state == 'cancel';gray:state == 'send'">
+                        <field name="reg_no"/>
+                        <field name="partner_id"/>
+                        <field name="assess_year"/>
+                        <field name="wakf_district"/>
+                        <field name="recover_amount" sum="Total Amount"/>
+                        <field name="collection_charge" sum="Total Amount"/>
+                        <field name="grand_total" sum="Total Amount"/>
+                        <field name="approve"/>
+                        <field name="send"/>
+                        <field name="cancel"/>
+                        <field name="state"/>
+                    </tree>
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="revenue_recovery_form_view">
+                <field name="name">Revenue Recovery form</field>
+                <field name="model">revenue.recovery</field>
+                <field name="type">form</field>
+                <field name="arch" type="xml">
+                    <form string="Revenue Recovery Form" version="7.0">
+                    	<header>
+                    	<button name="action_approve" string="Approve" type="object" icon="gtk-go-forward" attrs="{'invisible':['|',('state','!=','submitted')]}"/>
+                    	<button name="action_send" string="Send RR" type="object" icon="gtk-go-forward" attrs="{'invisible':['|',('state','!=','approve')]}"/>
+                    	<button name="action_execute" string="Execute RR" type="object" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','send')]}"/>
+                		<button name="action_cancel" string="Cancel RR" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','send')]}"/>
+                		<field name="state" widget="statusbar" statusbar_visible="submitted,approve,send,execute,cancel"/>
+                		
+                    	</header>
+                    	<sheet>
+	                    	<group>
+	                    		<div class="oe_title">
+	                            
+	                            <div class="oe_edit_only">
+	                                <label for="name" string="Registration Number"/>
+	                                
+	                            </div>
+	                            <h1>
+	                           
+	                                <field name="reg_no"/>
+	                      
+	                            </h1>
+	                            
+	                            
+	                        </div>
+	                         
+	                        <div class="oe_title">
+	                       
+	                            <div class="oe_edit_only">
+	                                <label for="name" string="Assessment Year"/>
+	                            </div>
+	                            <h1>
+	                                <field name="assess_year" />
+	                            </h1>
+	                          
+	                        </div>
+	                        </group>
+                        <group>
+	                        <group>
+	                        	
+	                    		<field name="partner_id"/>
+	                        	<field name="wakf_district"/>
+	                        	<field name="recover_amount"/>
+	                        	<field name="collection_charge"/>
+	                        	<field name="grand_total"/>
+	                        	<field name="certified_date" attrs="{'required':[('state','in','execute')]}"/>
+	                        	<field name="approve"/>
+	                        </group>
+	                        <group>
+	                        	<field name="file_no"/>
+	                        	<field name="requisiton_no"/>
+	                        	<field name="certificate_no" attrs="{'required':[('state','in','execute')]}"/>                
+	                        	<field name="send"/>
+	                        	<field name="rr_execute"/>
+	                        	<field name="cancel"/>
+	                        	<field name="cancel_date" attrs="{'required':[('state','in','cancel')]}"/>
+	                        	<field name="company_id" groups="base.group_multi_company"/> 
+	                        </group>
+                        </group> 
+                        <notebook colspan="4">
+                        <page string="Follow Ups" attrs="{'invisible':['|',('state','not in',('approve','send','execute','cancel'))]}">
+                        		<field name="follow_up_id" nolabel="1" widget="one2many_list">
+							 	 	<tree string="Follow Ups.." editable="bottom">
+							 	 		<field name="name"/>
+										<field name="who"/>
+										<field name="when"/>
+									</tree>
+								</field>							        	
+						</page>
+                        
+                        </notebook>  
+                        </sheet>
+                    </form>
+                </field>
+            </record>
+            
+            <record id="revenue_recovery_window_search_view" model="ir.ui.view">
+            <field name="name">Revenue Recovery Search</field>
+            <field name="model">revenue.recovery</field>
+            <field name="arch" type="xml">
+                <search string="Search">
+                <field name="reg_no" string="Registration No" filter_domain="[(('reg_no','=',self))]"/>
+                <separator/>
+                <filter string="Send" name="open" domain="[('state','=','send')]" help="Approved BJ"/>
+                <filter string="Executed" name="open" domain="[('state','=','execute')]" help="Send BJ"/>
+                <filter string="Cancelled" name="open" domain="[('state','=','cancel')]" help="Cancelled BJ"/>
+                
+                 <group expand="0" string="Group By...">
+              		<filter string="Register Number" domain="[]" context="{'group_by':'reg_no'}"/>
+              		<filter string="File No" domain="[]" context="{'group_by':'file_no'}"/>
+              		<filter string="Wakf District" domain="[]" context="{'group_by':'wakf_district'}"/>
+              		<filter string="Assessment Year" domain="[]" context="{'group_by':'assess_year'}"/>
+              		<filter string="Certified Date" domain="[]" context="{'group_by':'certified_date'}"/>
+                 </group>
+  				 </search>
+            </field>
+        </record>
+
+            <record model="ir.actions.act_window" id="action_revenue_recovery_tree_view">
+                <field name="name">Revenue Recovery</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">revenue.recovery</field>
+		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
+                <field name="view_type">form</field>
+                <field name="view_mode">tree,form</field>
+                <field name="view_id" ref="revenue_recovery_tree_view"/>
+            </record>
+
+
+    
+    </data>
+</openerp>
