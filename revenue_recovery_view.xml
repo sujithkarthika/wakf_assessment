@@ -31,11 +31,9 @@
                 <field name="arch" type="xml">
                     <form string="Revenue Recovery Form" version="7.0">
                     	<header>
-                    	<button name="action_approve" string="Approve" type="object" icon="gtk-go-forward" attrs="{'invisible':['|',('state','!=','submitted')]}"/>
-                    	<button name="action_send" string="Send RR" type="object" icon="gtk-go-forward" attrs="{'invisible':['|',('state','!=','approve')]}"/>
-                    	<button name="action_execute" string="Execute RR" type="object" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','send')]}"/>
+                    	<button name="action_send" string="Send RR" type="object" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','submitted')]}"/>
                 		<button name="action_cancel" string="Cancel RR" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','send')]}"/>
-                		<field name="state" widget="statusbar" statusbar_visible="submitted,approve,send,execute,cancel"/>
+                		<field name="state" widget="statusbar" statusbar_visible="submitted,send,execute,cancel"/>
                 		
                     	</header>
                     	<sheet>
@@ -69,23 +67,23 @@
                         <group>
 	                        <group>
 	                        	
-	                    		<field name="partner_id"/>
-	                        	<field name="wakf_district"/>
-	                        	<field name="recover_amount"/>
-	                        	<field name="collection_charge"/>
-	                        	<field name="grand_total"/>
-	                        	<field name="certified_date" attrs="{'required':[('state','in','execute')]}"/>
+	                    		<field name="partner_id" attrs="{'required':[('state','in',['submitted','send','execute','cancel'])]}"/>
+	                        	<field name="wakf_district" attrs="{'required':[('state','in',['submitted','send','execute','cancel'])]}"/>
+	                        	<field name="recover_amount" attrs="{'required':[('state','in',['submitted','send','execute','cancel'])]}"/>
+	                        	<field name="collection_charge" attrs="{'required':[('state','in',['submitted','send','execute','cancel'])]}"/>
+	                        	<field name="grand_total" attrs="{'required':[('state','in',['submitted','send','execute','cancel'])]}"/>
+	                        	<field name="certified_date" attrs="{'required':[('state','in',['submitted','send','execute','cancel'])]}"/>
 	                        	<field name="approve"/>
 	                        </group>
 	                        <group>
-	                        	<field name="file_no"/>
+	                        	<field name="file_no" attrs="{'required':[('state','in',['submitted','send','execute','cancel'])]}"/>
 	                        	<field name="requisiton_no"/>
 	                        	<field name="certificate_no" attrs="{'required':[('state','in','execute')]}"/>                
 	                        	<field name="send"/>
 	                        	<field name="rr_execute"/>
 	                        	<field name="cancel"/>
-	                        	<field name="cancel_date" attrs="{'required':[('state','in','cancel')]}"/>
-	                        	<field name="company_id" groups="base.group_multi_company"/> 
+	                        	<field name="cancel_date" attrs="{'required':[('state','=','cancel')]}"/>
+	                        	<!--  <field name="company_id" groups="base.group_multi_company"/>  -->
 	                        </group>
                         </group> 
                         <notebook colspan="4">

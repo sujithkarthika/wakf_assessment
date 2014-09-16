@@ -81,6 +81,28 @@
                 
                 </field>
             </record>
+            
+            <record id="arrear_list_window_search_view" model="ir.ui.view">
+            <field name="name">Arrear List Search</field>
+            <field name="model">arrear.list</field>
+            <field name="arch" type="xml">
+                <search string="Search">
+                <field name="reg_no" string="Registration No" filter_domain="[(('reg_no','=',self))]"/>
+                <separator/>
+                <filter string="Approved BJ" name="open" domain="[('state','=','approved')]" help="Approved BJ"/>
+                <filter string="Send BJ" name="open" domain="[('state','=','send')]" help="Send BJ"/>
+                <filter string="Moved to Re-Assessment" name="open" domain="[('state','=','re-assessment')]" help="Re assessed BJ"/>
+                <filter string="Cancelled" name="open" domain="[('state','=','cancelled')]" help="Cancelled BJ"/>
+                
+                 <group expand="0" string="Group By...">
+              		<filter string="Register Number" domain="[]" context="{'group_by':'reg_no'}"/>
+              		<filter string="Account Year" domain="[]" context="{'group_by':'account_year'}"/>
+              		<filter string="Assessment Year" domain="[]" context="{'group_by':'assessment_year'}"/>
+              		<filter string="BJ Creation Date" domain="[]" context="{'group_by':'ass_date'}"/>
+                 </group>
+  				 </search>
+            </field>
+        </record>
 
             <record model="ir.actions.act_window" id="action_arrear_list_tree_view">
                 <field name="name">Arrear List</field>
@@ -92,7 +114,7 @@
                 <field name="view_id" ref="arrear_list_tree_view"/>
             </record>
 
-           <menuitem id="arrear_list_menu" name="Arrear List" parent="assessment_sub_head" sequence="2" action="action_arrear_list_tree_view"/>
+            
             
     
     </data>

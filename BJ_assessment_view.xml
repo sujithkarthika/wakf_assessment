@@ -32,7 +32,8 @@
                 		<button name="action_send" states="approved" string="Send BJ" type="object" icon="gtk-go-forward"/>
                 		<button name="action_cancel" states="approved" string="Cancel BJ" type="object" icon="gtk-goto-last"/>
                 		<button name="action_re_assessment" states="send" string="Cancel and Re-Assessment" type="object" icon="gtk-go-forward"/>
-                		<field name="state" widget="statusbar" statusbar_visible="draft,approved,send,re_assessment,cancelled"/>
+                		<button name="action_rr" states="send" string="Send RR" type="object" icon="gtk-go-forward"/>
+                		<field name="state" widget="statusbar" statusbar_visible="draft,approved,send,re_assessment,rr,cancelled,completed"/>
                     </header>
                     <sheet>
                     	<group>
@@ -43,22 +44,22 @@
                                 		<label for="reg_no" string="Registration Number"/>
                                 	</div>
                            		 	<h1>                          
-                                		<field name="reg_no"/>
+                                		<field name="reg_no" attrs="{'required':[('state','!=','draft')],'readonly':[('state','in',['approved','send','re_assessment','cancelled','completed'])]}"/>
                             		</h1>
                         		</div>
                         	</group>
                         	<group></group>
                         	<group>                       	                           		 	                         
-                                <field name="wakf_id"/>
-                                <field name="assessment_year"/>
-                                <field name="account_year"/>
-                                <field name="ass_date"/> 
+                                <field name="wakf_id" attrs="{'required':[('state','!=','draft')],'readonly':[('state','in',['approved','send','re_assessment','cancelled','completed'])]}"/>
+                                <field name="assessment_year" attrs="{'required':[('state','!=','draft')],'readonly':[('state','in',['approved','send','re_assessment','cancelled','completed'])]}"/>
+                                <field name="account_year" attrs="{'required':[('state','!=','draft')],'readonly':[('state','in',['approved','send','re_assessment','cancelled','completed'])]}"/>
+                                <field name="ass_date" attrs="{'required':[('state','!=','draft')],'readonly':[('state','in',['approved','send','re_assessment','cancelled','completed'])]}"/> 
                                                      		
                         	</group>
                         	<group>
-                        		<field name="net_assess"/>
-                        		<field name="net_bj"/>
-                        		<field name="contribution"/>
+                        		<field name="net_assess" attrs="{'required':[('state','!=','draft')],'readonly':[('state','in',['approved','send','re_assessment','cancelled','completed'])]}"/>
+                        		<field name="net_bj" attrs="{'required':[('state','!=','draft')],'readonly':[('state','in',['approved','send','re_assessment','cancelled','completed'])]}"/>
+                        		<field name="contribution" attrs="{'required':[('state','!=','draft')],'readonly':[('state','in',['approved','send','re_assessment','cancelled','completed'])]}"/>
                         		
                        	    </group>
                           
@@ -89,17 +90,17 @@
                 <field name="view_mode">tree,form</field>
                 <field name="view_id" ref="bj_assessment_window_tree_view"/>
             </record>
-            
+             
             <record id="bj_assessment_window_search_view" model="ir.ui.view">
             <field name="name">BJ Assessment Search</field>
             <field name="model">bj.assessment.window</field>
             <field name="arch" type="xml">
                 <search string="Search">
-                <field name="reg_no" string="Registration No" filter_domain="[()]"/>
+                <field name="reg_no" string="Registration No" filter_domain="[(('reg_no','=',self))]"/>
                 <separator/>
                 <filter string="Approved BJ" name="open" domain="[('state','=','approved')]" help="Approved BJ"/>
                 <filter string="Send BJ" name="open" domain="[('state','=','send')]" help="Send BJ"/>
-                <filter string="Moved to Re-Assessment" name="open" domain="[('state','=','re-assessment')]" help="Re assessed BJ"/>
+                <filter string="Moved to Re-Assessment" name="open" domain="[('state','=','re_assessment')]" help="Re assessed BJ"/>
                 <filter string="Cancelled" name="open" domain="[('state','=','cancelled')]" help="Cancelled BJ"/>
                 
                  <group expand="0" string="Group By...">
@@ -130,11 +131,6 @@
 			</p>
 			</field>
 		</record>
-		
-    		
-			
-    
-    
     
     </data>
 </openerp>

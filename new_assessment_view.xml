@@ -31,7 +31,7 @@
                     	<button name="action_submit" string="Submit" type="object" attrs="{'invisible':['|',('state','in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
                     	<button name="action_sent_notice" string="Sent Notice" type="object" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','submitted')]}"/>
                 		<button name="action_invoice" string="Invoice" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('sent_notice'))]}"/>
-                		<button name="action_showcause" string="Sent ShowCause" type="object" icon="gtk-goto-last" attrs="{'invisible':['|',('state','!=','invoiced'),('showcause_tick','=',True)]}"/>
+                		<button name="action_showcause" string="Sent ShowCause" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','invoiced')]}"/>
                 		<button name="action_appeal" string="Appeal Received" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('invoiced','showcause'))]}"/>
                 		<button name="action_RR" string="Send RR" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('showcause','appeal','invoiced'))]}"/>
                 		<button name="action_re_assess" string="Re-assessment" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','appeal')]}"/>
@@ -49,7 +49,7 @@
                             </div>
                             <h1>
                            
-                                <field name="name" on_change="on_change_wakf_regno_to_name_new_assess(name)"/>
+                                <field name="name" on_change="on_change_wakf_regno_to_name_new_assess(name,acc_year)"/>
                       
                             </h1>
                             
@@ -70,9 +70,9 @@
                    		<group>
                          <group>
                          	<field name="revised"/>
-                         	<field name="appeal_no" attrs="{'invisible':[('revised','!=',True)]}"/>
-                         	<field name="appeal_details" attrs="{'invisible':[('revised','!=',True)]}"/>
-                         	<field name="appeal_date" attrs="{'invisible':[('revised','!=',True)]}"/>
+                         	<field name="appeal_no" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','not in',['submitted','sent_notice'])],'required':[('revised','=',True),('state','in',['submitted','sent_notice'])]}"/>
+                         	<field name="appeal_details" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','not in',['submitted','sent_notice'])],'required':[('revised','=',True),('state','in',['submitted','sent_notice'])]}"/>
+                         	<field name="appeal_date" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','not in',['submitted','sent_notice'])],'required':[('revised','=',True),('state','in',['submitted','sent_notice'])]}"/>
                         	<field name="wakf_id"/>
                         	<field name="district"/>
                         	<field name="taluk"/>
@@ -80,63 +80,85 @@
                          </group>
                          <group>
                         	<field name="date_from"/>
-                        	<field name="assess_year"/>
-                        	
+                        	<field name="assess_year"/>	
                          </group>
-                         <group>
-                         	<field name="showcause_notice_no" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
-                            <field name="showcause_tick" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
-                         	<field name="appeal_no" attrs="{'invisible':['|',('state','not in',('appeal','re-assess','completed'))]}"/>
-                            <field name="appeal_details" attrs="{'invisible':['|',('state','not in',('appeal','re-assess','completed'))]}"/>
-                         	<field name="appeal_date" attrs="{'invisible':['|',('state','not in',('appeal','re-assess','completed'))]}"/>
-                         </group>
+                         
                          <group string="Kaivasam">
                         	<field name="line_1"/>
                         	<field name="line_2"/>
                         	<field name="line_3"/>
                          </group>
+                         <group string="Summary" attrs="{'invisible':[('state','not in',['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed','done'])]}">
+                         	<field name="grand_income"/>
+                        	<field name="exempted"/>
+                        	<field name="munbaki"/>
+                        	<field name="deducted"/>
+                        	<field name="net_income" class="oe_subtotal_footer_separator" widget="monetary"/>
+                        	<field name="contribution_amount"/>
+                         
+                         </group>
                  
                         </group>
                         <notebook colspan="4">
-                        <page string="Income Details">
+                        <page string="Income Details" attrs="{'invisible':['|',('state','in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed','done'))]}">
                         	<field name="assess_line_id1" nolabel="1" widget="one2many_list">
 							 	 <tree string="Income Lines" editable="bottom">
-									<field name="statement_a"/>
-									<field name="description"/>
-									<!-- <field name="uom"/>								
-									<field name="amount"/>
-									<field name="quantity"/> -->									
-									<field name="unit_cost"/>
+									<field name="statement_a"/>		
+									<field name="unit_cost" on_change="on_change_property_percentage(statement_a,unit_cost)"/>
+									<field name="exmpt_percentage"/>
+									<field name="exmpt_amount"/>
+									<field name="amount_total"/>
+									
 								</tree>		
 								
 			
 							</field> 
+							
+					       	 
+					                               
+                        </page>
+    <!-- ==================================  COPY INCOME ========================================= -->
+    					<page string="IncomeDetails" attrs="{'invisible':[('state','not in',['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed','done'])],'readonly':[('state','in',['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed','done'])]}">
+                        	<field name="assess_line_id1_copy" nolabel="1" widget="one2many_list">
+							 	 <tree string="Income Line" editable="bottom">
+									<field name="statement_a"/>									
+									<field name="unit_cost"/>
+									<field name="exmpt_percentage"/>
+									<field name="exmpt_amount"/>
+									<field name="amount_total"/>
+									
+								</tree>		
+							</field>
 							<group></group>
 							<group class="oe_subtotal_footer oe_right">							 
 					  			<field name="amount_total1" class="oe_subtotal_footer_separator" widget="monetary"/>
 					        </group>
+					        <!--  
 					        <group class="oe_subtotal_footer oe_left" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}">
-	                        	<field name="total_income"/>
+	                        	<field name="grand_income"/>
 	                        	<field name="exempted"/>
-	                        	<field name="total_income_final" class="oe_subtotal_footer_separator" widget="monetary"/>
-	                        	<field name="total_expense"/>
+	                        	<field name="munbaki"/>
 	                        	<field name="deducted"/>
-	                        	<field name="total_expense_final" class="oe_subtotal_footer_separator" widget="monetary"/>
+	                        	<field name="net_income" class="oe_subtotal_footer_separator" widget="monetary"/>
+	                        	<field name="contribution_amount"/>
+	                        
                             </group>
 					       	<group>
-					       	</group>
-					       	 
-					                               
+					       	</group>  -->                            
                         </page>
-                        <page string="Expense Details">
-                        	<field name="assess_line_id2" nolabel="1" widget="one2many_list">
-                        		 <tree string="Expense Lines" editable="bottom">
-									<field name="statement_a"/>
-									<field name="description"/>
-									<!--<field name="uom"/>
-									<field name="amount"/>
-									<field name="quantity"/> -->									
-									<field name="unit_cost"/>
+    <!-- =================================  COPY INCOME CLOSE ============================================= -->
+                        
+                        
+                        <page string="Expense Details" attrs="{'invisible':['|',('state','in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed','done'))]}">
+                        	<field name="assess_line_id2" nolabel="1" widget="one2many_list" >
+                        		 <tree string="Expense Lines" editable="bottom" colspan="4">	
+									<field name="statement_b" on_change="on_change_property_percentage(statement_b,unit_cost)"/>								
+									<field name="unit_cost" on_change="on_change_property_percentage(statement_b,unit_cost)"/>
+									<field name="state" invisible="1"/>
+									<field name="ded_percentage" />
+									<field name="ded_amount" />
+									<field name="amount_total"/>
+									<field name="related"/>
 								</tree>	
 							</field>
 							<group>
@@ -157,6 +179,26 @@
 					       	</group>
 								
                         </page>
+  <!--  ========================================== COPY EXPENSE START ======================================== -->
+  						<page string="ExpenseDetails" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed','done'))]}">
+                        	<field name="assess_line_id2_copy" nolabel="1" widget="one2many_list" >
+                        		 <tree string="ExpenseLines" editable="bottom" colspan="4">	
+									<field name="statement_b"/>								
+									<field name="unit_cost"/>
+									<field name="ded_percentage" />
+									<field name="ded_amount" />
+									<field name="amount_total"/>
+									<field name="related"/>
+								</tree>	
+							</field>
+							<group>
+					       	</group>
+					       	<group class="oe_subtotal_footer oe_right">
+							 
+								<field name="amount_total2" class="oe_subtotal_footer_separator" widget="monetary"/>
+					        </group>
+						 </page>
+  <!--  =========================================== COPY EXPENSE START ======================================== -->
                         <page string="Follow Ups" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed','done'))]}">
                         		<field name="follow_up_id" nolabel="1" widget="one2many_list">
 							 	 	<tree string="Follow Ups.." editable="bottom">
@@ -171,6 +213,10 @@
                
                        
                     </sheet>
+                    <div class="oe_chatter">
+	                	<field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+	                	<field name="message_ids" widget="mail_thread" placeholder="Share a message..."/>
+	            		</div> 
                     </form>
                  
                 </field>
@@ -202,7 +248,7 @@
             <field name="model">assessment.window</field>
             <field name="arch" type="xml">
                 <search string="Search">
-                <field name="name" string="Name" filter_domain="[()]"/>
+                <field name="name" string="Register Number" filter_domain="[(('name','=',self))]"/>
                 <separator/>
                 <filter string="Submitted" name="open" domain="[('state','=','submitted')]" help="Open"/>
                 <filter string="Notice Send" name="open" domain="[('state','=','sent_notice')]" help="Open"/>

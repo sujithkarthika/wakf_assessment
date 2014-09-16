@@ -12,6 +12,7 @@
 					<field name="residual" on_change="on_change_state(state,registration_no,assess_year_saleorder)" groups="account.group_account_user" widget="monetary" options="{'currency_field': 'currency_id'}"/>  				 </xpath> 			 
   				 <xpath expr="//form/sheet/group/group[1]" position="replace"> 
   			    		<group>
+  			    		<field name="registration_no" attrs="{'invisible':['|',('is_assessment', '!=', True),('is_sws', '=', True)]}" on_change="on_change_wakf_regno_to_name(registration_no)"/>
 						<field string="Name" name="partner_id" on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)" groups="base.group_user" context="{'search_default_customer':1, 'show_address': 1}"  domain="[('customer', '=', True)]"/>
 						<field name="appli_no" attrs="{'invisible':['|',('is_assessment', '=', True),('is_sws', '!=', True)]}"/>
 						<field name="fiscal_position" widget="selection" attrs="{'invisible':[('is_assessment', '=', True)]}"/>
@@ -27,6 +28,7 @@
                	 </group>
                	 <group attrs="{'invisible':[('is_assessment', '!=', True)]}"></group>
                	 </xpath>
+               	 <!--  
 				<xpath expr="//form/sheet/group/group[1]" position="before">
 					
              	    <div class="oe_title" attrs="{'invisible':[('is_assessment', '!=', True)]}">
@@ -39,9 +41,6 @@
                        </div>
                        <group></group>
                </xpath>
-              <!--   <xpath expr="//form/sheet/group/group[2]" position="inside">
-               		<field name="assessment_type"/>
-               </xpath>-->
 				 <xpath expr="//form/sheet/group/group[1]" position="before">
                	     
              	    <div class="oe_title" attrs="{'invisible':[('is_assessment', '!=', True)]}">
@@ -54,14 +53,16 @@
                        </div>
                        <group></group>
                </xpath>
-               
+               -->
                
                <xpath expr="//form/sheet/group" position="inside">
                    <group attrs="{'invisible':[('is_assessment', '!=', True)]}">
                    	 
                    	 <field name ="account_year_saleorder"/>
+                   	 <field name="assess_year_saleorder"/>
                  	 <field name="total_income_saleorder" />
                      <field name="total_expense_saleorder"/>
+                     
                	 </group>
                	 <group attrs="{'invisible':[('is_assessment', '!=', True)]}">
                	 		<field name ="assessment_type"/>
@@ -98,9 +99,10 @@
 	  			<field name="model">account.invoice</field>
 	  			<field name="inherit_id" ref="account.invoice_tree" />
 	  			<field name="arch" type="xml">
-					<xpath expr="//tree[@string='Invoice']/field[@name='partner_id']" position="replace">
-						 <field string="Wakf Name" name="partner_id" groups="base.group_user"></field>
+					<xpath expr="//tree[@string='Invoice']/field[@name='partner_id']" position="before">
+						 <field string="Registration No" name="registration_no"></field>
 					</xpath>
+					
 					<xpath expr="//tree[@string='Invoice']/field[@name='amount_untaxed']" position="replace">
 						 <field name="assessment_type"/>
 					</xpath>
@@ -260,5 +262,31 @@
   			</field>
   			</record>
            <!--============== Invoice filter inherit report filter vendor2 pay ends=========================== --> 
+           
+           <!-- ========================  Invoice filter to reg no default search ============== -->
+			 
+			<record id="view_invoice_default_inherited_2" model="ir.ui.view">
+  			<field name="name">view.account.invoice.default.inherited</field>
+  			<field name="model">account.invoice</field>
+  			<field name="inherit_id" ref="account.view_account_invoice_filter" />
+  			<field name="arch" type="xml">	
+  				<xpath expr="//search[@string='Search Invoice']/field[@name='number']" position="replace">
+  					<field name="registration_no" string="Register Number" filter_domain="[(('registration_no','=',self))]"/>
+  				</xpath>
+  			</field>
+  			</record>
+  			
+  			<!-- =============================== Account Voucher Inherit ========================= -->
+  			
+  			<record id="invoice_voucher_invoice_form" model="ir.ui.view">
+		  			<field name="name">view.account.voucher23.inherited</field>
+		  			<field name="model">account.voucher</field>
+		  			<field name="inherit_id" ref="account_voucher.view_vendor_receipt_form" />
+		  			<field name="arch" type="xml">
+		  				  <xpath expr="//form/sheet/group/group[1]/field[@name='partner_id']" position="before">
+		  				  		<field name="registration_no" on_change="on_change_wakf_regno_to_name(registration_no)"/>
+		  				  </xpath>
+		  			</field>
+		  	</record>
     </data>
 </openerp>
