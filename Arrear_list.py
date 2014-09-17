@@ -1,10 +1,6 @@
 from osv import osv
 from osv import fields
-from openerp.tools.translate import _
-import openerp.addons.decimal_precision as dp
-from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
-from datetime import datetime
-import time
+
 
 class Arrear_list(osv.osv):
     

@@ -1,12 +1,10 @@
 from osv import osv
 from osv import fields
-from openerp.tools.translate import _
-import openerp.addons.decimal_precision as dp
-from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
+from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 from datetime import date
-from datetime import datetime
+import addons.decimal_precision as dp
 import time
-import os
+
 
 class invoice_inherit(osv.osv):
     

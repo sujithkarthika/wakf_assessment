@@ -1,13 +1,11 @@
 from osv import osv
 from osv import fields
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
+
 import time
-import pooler
-from openerp.tools.translate import _
-from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
-import addons.decimal_precision as dp
-import netsvc
+
+from tools.translate import _
+from tools import  DEFAULT_SERVER_DATETIME_FORMAT
+
 
 class Revenue_Recovery(osv.osv):
     
