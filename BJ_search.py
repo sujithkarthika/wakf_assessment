@@ -1,8 +1,8 @@
 from osv import osv
 from osv import fields
-from tools.translate import _
-import addons.decimal_precision as dp
-from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
+
+
+from tools import DEFAULT_SERVER_DATETIME_FORMAT
 from datetime import datetime
 from datetime import date
 import time
@@ -40,8 +40,12 @@ class bj_assessment(osv.osv):
         def get_fiscal_id(name):
             search_condition = [('name', '=', name)]
             search_ids = self.pool.get('account.fiscalyear').search(cr, uid, search_condition)
-            acc_year = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids)[0].id
-            return acc_year or False
+            if search_ids:
+                acc_year = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids)[0].id
+                return acc_year or False
+            else:
+                raise osv.except_osv(_('Warning!'), _('Set Fiscal Year for %s')%name)
+
         values = {}
         invoice_lines1 = []
         id_res_partner = self.pool.get('res.partner')
@@ -69,7 +73,10 @@ class bj_assessment(osv.osv):
         bj_slab_id = self.pool.get('bj.slab')
         search_condition=[('approved','=',True)]
         key_search = bj_slab_id.search(cr,uid,search_condition)
-        key_browse = bj_slab_id.browse(cr,uid,key_search)[0]
+        if key_search:
+            key_browse = bj_slab_id.browse(cr,uid,key_search)[0]
+        else:
+            raise osv.except_osv(_('Cannot Process!'), _('Please Set BJ Slab First and approve it'))
         invoice_id = self.pool.get('account.invoice')
         registration_id = self.pool.get('res.partner')
         search_condition = [('wakf_reg_no', '=', reg_no)]
@@ -164,12 +171,26 @@ class bj_assessment(osv.osv):
                                 bj_amount = last_net_amount_is + last_net_amount_is * percentage / 100  ### Returning BJ amount with increment
                                 #year_change = '%s-%s'%(year_registration,year_registration+1)
                                 acc_year = get_fiscal_id(year_change)              ### checking BJ itself
-                                search_condition = [('reg_no', '=', reg_no) , ('state','in',['approved','send']),('account_year','=',acc_year)]
-                                search_list = self.pool.get('bj.assessment.window').search(cr,uid,search_condition)
-                                if not search_list:
+                                ###########################################  BJ ASSESSMENT CHECK  ###################################
+                                search_condition = [('reg_no', '=', reg_no) , ('state','in',['approved','send','rr','completed']),('account_year','=',acc_year)]
+                                search_list1 = self.pool.get('bj.assessment.window').search(cr,uid,search_condition)
+                                ###########################################  BJ ASSESSMENT CHECK  ###################################
+                                #===================================================================================================#
+                                #===================================================================================================#
+                                ###########################################   ASSESSMENT CHECK  ###################################
+                                search_condition = [('name', '=', reg_no) , ('state','in',['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']),('acc_year','=',acc_year)]
+                                search_list2 = self.pool.get('assessment.window').search(cr,uid,search_condition)
+                                ###########################################   ASSESSMENT CHECK  ###################################
+                                #===================================================================================================#
+                                #===================================================================================================#
+                                ###########################################  INVOICE CHECK  ###################################
+                                search_condition = [('registration_no', '=', reg_no) , ('state','in',['open','paid']),('assess_year_saleorder','=',acc_year)]
+                                search_list3 = self.pool.get('account.invoice').search(cr,uid,search_condition)
+                                ###########################################  INVOICE CHECK  ###################################
+                                if not search_list1 or search_list2 or search_list3:
                                     invoice_lines1.append((0,0,{'reg_no':reg_no,'account_year_line':acc_year,'assessment_year_line':assess_year,'assess_amount':last_net_amount_is,'net_income1':bj_amount,'contri_amount1':bj_amount*7/100}))
                                     last_net_amount_is = last_net_amount_is + bj_amount*7/100 
-                                if search_list:
+                                if search_list1 or search_list2 or search_list3:
                                     number = number + 1
                                 previous_list.append(last_net_amount_is)
                     year_registration = year_registration+1 
@@ -229,8 +250,11 @@ class bj_assessment(osv.osv):
         def get_fiscal_id(name,context=None):
             search_condition = [('name', '=', name)]
             search_ids = self.pool.get('account.fiscalyear').search(cr, uid, search_condition, context=context)
-            acc_year = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids, context=context)[0].id
-            return acc_year or False
+            if search_ids:
+                acc_year = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids)[0].id
+                return acc_year or False
+            else:
+                raise osv.except_osv(_('Warning!'), _('Set Fiscal Year for %s')%name)
         values = {}
         invoice_lines1 = []
         output = False
@@ -250,7 +274,7 @@ class bj_assessment(osv.osv):
             history_list = []
             for loop in id_res_partner.browse(cr,uid,search_ids):
                 reg_no = loop.wakf_reg_no
-                if reg_no:
+                if reg_no != 0:
                     previous_list = []
                     bj_slab_id = self.pool.get('bj.slab')
                     search_condition=[('approved','=',True)]
@@ -348,12 +372,26 @@ class bj_assessment(osv.osv):
                                             bj_amount = last_net_amount_is + last_net_amount_is * percentage / 100  ### Returning BJ amount with increment
                                             #year_change = '%s-%s'%(year_registration,year_registration+1)
                                             acc_year = get_fiscal_id(year_change)
-                                            search_condition = [('reg_no', '=', reg_no) , ('state','in',['approved','send']),('account_year','=',acc_year)]
-                                            search_list = self.pool.get('bj.assessment.window').search(cr,uid,search_condition)
-                                            if not search_list:
+                                            ###########################################  BJ ASSESSMENT CHECK  ###################################
+                                            search_condition = [('reg_no', '=', reg_no) , ('state','in',['approved','send','rr','completed']),('account_year','=',acc_year)]
+                                            search_list1 = self.pool.get('bj.assessment.window').search(cr,uid,search_condition)
+                                            ###########################################  BJ ASSESSMENT CHECK  ###################################
+                                            #===================================================================================================#
+                                            #===================================================================================================#
+                                            ###########################################   ASSESSMENT CHECK  ###################################
+                                            search_condition = [('name', '=', reg_no) , ('state','in',['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']),('acc_year','=',acc_year)]
+                                            search_list2 = self.pool.get('assessment.window').search(cr,uid,search_condition)
+                                            ###########################################   ASSESSMENT CHECK  ###################################
+                                            #===================================================================================================#
+                                            #===================================================================================================#
+                                            ###########################################  INVOICE CHECK  ###################################
+                                            search_condition = [('registration_no', '=', reg_no) , ('state','in',['open','paid']),('assess_year_saleorder','=',acc_year)]
+                                            search_list3 = self.pool.get('account.invoice').search(cr,uid,search_condition)
+                                            ###########################################  INVOICE CHECK  ###################################
+                                            if not search_list1 or search_list2 or search_list3:
                                                 invoice_lines1.append((0,0,{'reg_no':reg_no,'account_year_line':acc_year,'assessment_year_line':assess_year,'assess_amount':last_net_amount_is,'net_income1':bj_amount,'contri_amount1':bj_amount*7/100}))
-                                                last_net_amount_is = last_net_amount_is + bj_amount*7/100
-                                            if search_list:
+                                                last_net_amount_is = last_net_amount_is + bj_amount*7/100 
+                                            if search_list1 or search_list2 or search_list3:
                                                 number = number + 1
                                             previous_list.append(last_net_amount_is)
                                 year_registration = year_registration+1 
@@ -430,8 +468,9 @@ class bj_assessment(osv.osv):
             date_of = '%d-%d'%(today.year,today.year+1)
         search_condition = [('name', '=', date_of)]
         search_ids = self.pool.get('account.fiscalyear').search(cr, uid, search_condition, context=context)
-        similar_objs = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids, context=context)
-        return similar_objs[0].id
+        if search_ids:
+            similar_objs = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids, context=context)
+            return similar_objs[0].id
    
     def action_approve(self, cr, uid, ids, context=None):
         for rec in self.browse(cr, uid, ids, context=None):
@@ -479,12 +518,13 @@ class bj_assessment(osv.osv):
          'all_wakf':fields.boolean('Want to see all wakf ?'),
          'user_id':fields.char('user id',size=16),
          'state':fields.selection((('draft','Draft'),('created','Authenticated'), ('approved','BJ Confirmed'),('showcause','ShowCause')),'BJ State',required=False), 
-                                          
+         'company_id': fields.many2one('res.company', 'Company', required=False)                
                 }
     _defaults ={
                 'assessment_year':_deflt_ass_year,
                 'state':'draft',
                 'user_id': lambda obj, cr, uid, context: uid,
+                'company_id': lambda self,cr,uid,ctx: self.pool['res.company']._company_default_get(cr,uid,object='bj.assessment',context=ctx)
                 }
 bj_assessment()
 

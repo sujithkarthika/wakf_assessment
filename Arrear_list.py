@@ -1,10 +1,6 @@
 from osv import osv
 from osv import fields
-from tools.translate import _
-import addons.decimal_precision as dp
-from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
-from datetime import datetime
-import time
+
 
 class Arrear_list(osv.osv):
     
@@ -139,11 +135,13 @@ class Arrear_list(osv.osv):
              'contri_amount':fields.function(_total_amount_contribution_arrear,multi='sums1',string='Total Contribution',store=True),
              'arrear_line':fields.one2many('arrear.line','arrear_line'),
              'user_id':fields.char('user id',size=16),
-             'all_wakf':fields.boolean('ALL')
+             'company_id': fields.many2one('res.company', 'Company', required=False),
+             'all_wakf':fields.boolean('ALL'),
         }
     
     _defaults={
         'user_id': lambda obj, cr, uid, context: uid,
+        'company_id': lambda self,cr,uid,ctx: self.pool['res.company']._company_default_get(cr,uid,object='arrear.list',context=ctx)
      }
 Arrear_list()
 

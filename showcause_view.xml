@@ -30,7 +30,9 @@
                     <header>
                 		<button name="action_send" states="submitted" string="Send Showcause" type="object" icon="gtk-goto-last"/>
                 		<button name="action_cancel" states="submitted" string="Cancel Showcause" type="object" icon="gtk-goto-last"/>
-                		<field name="state" widget="statusbar" statusbar_visible="submitted,send,cancel" />              		
+                		<field name="state" widget="statusbar" statusbar_visible="submitted,send,cancel" 
+                		/>
+                		
                     </header>
                     <sheet>
                         <group>

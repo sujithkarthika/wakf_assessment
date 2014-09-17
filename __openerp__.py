@@ -1,7 +1,7 @@
 {
     "name" : "Wakf Board Assessment",
     "version" : "1.0",
-    "depends" : ['sale','account','base'],
+    "depends" : ['sale','account','base','wakf_registration'],
     "author" : "Novasoft Consultancy Services Pvt. Ltd.",
     'category' : 'Generic Modules/Others',
     "description": """Wakf Board - Assessment Module

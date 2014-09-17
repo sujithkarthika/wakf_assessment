@@ -1,12 +1,10 @@
 from osv import osv
 from osv import fields
-from tools.translate import _
-import addons.decimal_precision as dp
-from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
+from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 from datetime import date
-from datetime import datetime
+import addons.decimal_precision as dp
 import time
-import os
+
 
 class invoice_inherit(osv.osv):
     
@@ -28,7 +26,6 @@ class invoice_inherit(osv.osv):
                 res[invoice.id]['amount_tax'] += line.amount              
             res[invoice.id]['amount_total'] = ( res[invoice.id]['amount_tax'] + res[invoice.id]['amount_untaxed'] )   
         return res
-    
     def _deflt_ass_year(self, cr, uid, ids, context=None):
         res ={}
         today = date.today()
@@ -40,7 +37,9 @@ class invoice_inherit(osv.osv):
         search_condition = [('name', '=', date_of)]
         search_ids = self.pool.get('account.fiscalyear').search(cr, uid, search_condition, context=context)
         similar_objs = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids, context=context)
-        return similar_objs[0].id
+        if similar_objs:
+            return similar_objs[0].id
+        return False
     
     def _get_invoice_line(self, cr, uid, ids, context=None):
         result = {}
@@ -60,13 +59,12 @@ class invoice_inherit(osv.osv):
             id_res_partner=self.pool.get('res.partner')
             search_condition = [('wakf_reg_no', '=', reg_no)]
             search_ids = id_res_partner.search(cr, uid, search_condition, context=context)
-            similar_objs = id_res_partner.browse(cr, uid, search_ids, context=context)
-            if similar_objs:
+            if search_ids:
+                similar_objs = id_res_partner.browse(cr, uid, search_ids, context=context)
                 partner_id = id_res_partner.browse(cr, uid, search_ids, context=context)[0].id
                 values={'partner_id':partner_id,
-                        'assess_year_saleorder':False
                         }
-            return {'value' :values}
+                return {'value' :values}
         return False
     def on_change_wakf_acc_year_to_name(self, cr, uid, ids, reg_no,acc_year, context=None):
         values = {}
@@ -217,6 +215,7 @@ class invoice_inherit(osv.osv):
      #   return True
      
     def confirm_paid(self, cr, uid, ids, context=None):
+        pension_list = []
         if context is None:
             context = {}
         for rec in self.browse(cr,uid,ids):
@@ -228,15 +227,59 @@ class invoice_inherit(osv.osv):
             type = rec.type
             application_no = rec.appli_no
             partner_id = rec.partner_id.id
-        if is_assessment and type == 'out_invoice':  ### Other Assessments
+            assessment_type = rec.assessment_type
+            ###################### SWS ################
+            head_name = rec.head.name
+            head = rec.head.id
+            for_month = rec.for_month
+            year = rec.year
+            amount = rec.amount
+            key = rec.key
+            ###########################################
+        if is_assessment and type == 'out_invoice' and assessment_type == 'assessment':  ### Direct Assessments
             search_ids = self.pool.get('assessment.window').search(cr,uid,[('name','=',reg_no),('acc_year','=',acc_year),('assess_year','=',assess_year)])
             self.pool.get('assessment.window').write(cr,uid,search_ids,{'state':'completed'},context=None)    
-        if is_sws:   #### Education Loan
+        if is_assessment and type == 'out_invoice' and assessment_type == 'bj':  ### BJ Assessments
+            search_ids = self.pool.get('assessment.window').search(cr,uid,[('name','=',reg_no),('acc_year','=',acc_year),('assess_year','=',assess_year)])
+            self.pool.get('assessment.window').write(cr,uid,search_ids,{'state':'completed'},context=None)
+            search_ids = self.pool.get('bj.assessment.window').search(cr,uid,[('reg_no','=',reg_no),('account_year','=',acc_year),('assessment_year','=',assess_year)])
+            self.pool.get('bj.assessment.window').write(cr,uid,search_ids,{'state':'completed'},context=None)
+        if is_assessment and type == 'out_invoice' and assessment_type == 'rr':  ### RR Assessments
+            #search_ids = self.pool.get('assessment.window').search(cr,uid,[('name','=',reg_no),('acc_year','=',acc_year),('assess_year','=',assess_year)])
+            #self.pool.get('assessment.window').write(cr,uid,search_ids,{'state':'completed'},context=None)
+            search_ids = self.pool.get('revenue.recovery').search(cr,uid,[('reg_no','=',reg_no),('assess_year','=',assess_year)])
+            self.pool.get('revenue.recovery').write(cr,uid,search_ids,{'state':'execute'},context=None)
+        if is_sws and head_name == "Education Loan":   #### Education Loan
+            stat_assess = 'revolving'
             search_ids = self.pool.get('res.partner').search(cr,uid,[('appli_no','=',application_no)])
+            if search_ids:
+                browse_ids = self.pool.get('res.partner').browse(cr,uid,search_ids)
+                amount_sanctioned = browse_ids.amount_sanction 
             self.pool.get('res.partner').write(cr,uid,search_ids,{'state1':'paid'},context=None)
-        if is_sws and type == 'in_invoice':   ### Other SWS non re-fundable
+        if is_sws and type == 'in_invoice' and head_name != "Pension":   ### Other SWS non re-fundable
             search_ids = self.pool.get('res.partner').search(cr,uid,[('appli_no','=',application_no)])
-            self.pool.get('res.partner').write(cr,uid,search_ids,{'state1':'paid'},context=None)
+            self.pool.get('res.partner').write(cr,uid,search_ids,{'state1':'finished'},context=None)
+        if is_sws and type == 'in_invoice' and head_name == "Pension":   ### Pension SWS non re-fundable
+            search_ids = self.pool.get('res.partner').search(cr,uid,[('appli_no','=',application_no),('head','=',head),('state1','!=','finished')])
+            status = 'pending'
+            unlink_list = []
+            unlink_list.append((2,1))
+            if not search_ids:
+                raise osv.except_osv(_('Warning!'), _('Undefined or closed transaction on Pension'))
+            browse_ids = self.pool.get('res.partner').browse(cr,uid,search_ids)
+            for line in browse_ids:
+                for line2 in line.history_transaction:
+                    month_test = line2.for_month
+                    year_test = line2.year
+                    amount1 = line2.amount
+                    if month_test == for_month and year_test == year and amount1 == amount:
+                        status = 'paid'
+                    pension_list.append((0,0,{'for_month':month_test,'year':year_test,'amount':amount1,'status':status}))
+                    status = 'pending'
+                self.pool.get('res.partner').write(cr,uid,search_ids,{'history_transaction':False})
+                self.pool.get('res.partner').write(cr,uid,search_ids,{'history_transaction':pension_list})
+            self.pool.get('res.partner').write(cr,uid,search_ids,{'state1':'revolving'})
+
         self.write(cr, uid, ids, {'state':'paid'}, context=context)
         return True
         
@@ -250,7 +293,7 @@ class invoice_inherit(osv.osv):
             'total_income_saleorder':fields.char('Total Income', size=16, required=False),
             'total_expense_saleorder':fields.char('Total Expense', size=16, required=False),
             'cash_hand_saleorder':fields.char('Cash in Hand', size=16, required=False),
-            'assessment_type':fields.selection((('assessment','Direct Assessment'), ('bj','BJ Assessment')),'Assessment Type',required=False), 
+            'assessment_type':fields.selection((('assessment','Direct Assessment'), ('bj','BJ Assessment'),('rr','Revenue Recovery')),'Assessment Type',required=False), 
             #'assess_year_saleorder':fields.char('Assessment Year', size=16, required=True),
             'assess_year_saleorder':fields.many2one('account.fiscalyear','Account Year',ondelete='set null'),
             'account_year_saleorder':fields.many2one('account.fiscalyear','Assessment Year',ondelete='set null'),
@@ -285,7 +328,14 @@ class invoice_inherit(osv.osv):
             
             'is_assessment':fields.boolean('Assessment'),
             'is_sws':fields.boolean('SWS'),  
-            'appli_no':fields.char('Application Number',readonly=True),   
+            'appli_no':fields.char('Application Number',readonly=True), 
+            ###############################  SWS  #####################
+            'head': fields.many2one('product.category','Head',ondelete='set null'),
+            'for_month':fields.char('For Month',size=16),
+            'year':fields.char('Year',size=16),
+            'amount':fields.float('Amount'),
+            'key':fields.char('Key',size=16),
+            ########################################################### 
                 }
             
     _defaults ={
@@ -308,26 +358,61 @@ class assessment_income_line(osv.osv):
         for record in self.browse(cr, uid, ids):
             multi[record.id]= record.quantity * record.unit_cost
         return multi
+    
+    def on_change_property_percentage(self, cr, uid, ids,product,amount, context=None):
+        obj_product = self.pool.get('product.product')
+        values = {}
+        if product and amount:
+            search_product = obj_product.search(cr,uid,[('id','=',product)])
+            if search_product:
+                browse_income = obj_product.browse(cr,uid,search_product)[0]
+                income_percentage = browse_income.percentage_income
+                exmpt_amount = amount * income_percentage / 100
+                amount_total = amount - exmpt_amount
+                values = {'exmpt_percentage':income_percentage,
+                          'exmpt_amount':exmpt_amount,
+                          'amount_total':amount_total,
+                          
+                          'exmpt_percentage_copy':income_percentage,
+                          'exmpt_amount_copy':exmpt_amount,
+                          'amount_total_copy':amount_total
+                          }
+                return {'value':values}
+        return False
     _columns = {
                 'statement_a':fields.many2one('product.product','Income',domain=[('income', '=', True),('sale_ok', '=', True)],ondelete='set null',required=True),
-                'quantity':fields.float('Quantity',size=16),
-                'uom':fields.char('UOM',size=16),
                 'unit_cost':fields.float('Amount',size=16),
-                'amount':fields.function(get_total_multiplication,string='Sub Total',type='float',method=True),
-                'description':fields.text('Description'),
                 'assess_menu_id1':fields.many2one('assessment.window','Income',ondelete='set null'),
-                'amount_total':fields.float('Total Amount',size=16),
+                'exmpt_percentage':fields.float('Exempted(%)',states={'unsaved':[('readonly',True)]},readonly=False),
+                'exmpt_amount':fields.float('Amount Exempted',states={'unsaved':[('readonly',True)]},readonly=False),
+                'amount_total':fields.float('Sub Total',states={'unsaved':[('readonly',True)]},readonly=False),
+
                 
-                
+                'state': fields.selection([
+                    ('unsaved', 'Submitted'),
+                    ('saved', 'Notice Send'),
+                    ],'status', readonly=False),
                 }
     _defaults = {
-        'description':'Income',
-        'uom':'Unit',
-        'quantity':1,
+                 'state':'unsaved'
         
     }
         
 assessment_income_line()
+
+class assessment_income_line_copy(osv.osv):
+    
+    _name = 'assessment.window.line1.copy'
+    _columns = {
+                'statement_a':fields.many2one('product.product','Income',domain=[('income', '=', True),('sale_ok', '=', True)],ondelete='set null',required=True),
+                'unit_cost':fields.float('Amount',size=16),
+                'assess_menu_id1_copy':fields.many2one('assessment.window','Incomecopy',ondelete='set null'),
+                'exmpt_percentage':fields.float('Exempted(%)',readonly=False),
+                'exmpt_amount':fields.float('Amount Exempted',readonly=False),
+                'amount_total':fields.float('Sub Total',readonly=False),
+    
+        }
+assessment_income_line_copy()
 
 class assessment_expense_line(osv.osv):
     
@@ -337,29 +422,76 @@ class assessment_expense_line(osv.osv):
         for record in self.browse(cr, uid, ids):
             multi[record.id]= record.quantity * record.unit_cost
         return multi
+    
+    def on_change_property_percentage(self, cr, uid, ids,product,amount, context=None):
+        obj_product = self.pool.get('product.product')
+        values = {}
+        related = False
+        if product and amount:
+            search_product = obj_product.search(cr,uid,[('id','=',product)])
+            if search_product:
+                browse_income = obj_product.browse(cr,uid,search_product)[0]
+                related = browse_income.deductable
+                expense_percentage = browse_income.percentage_expense
+                exmpt_amount = amount * expense_percentage / 100
+                amount_total = amount - exmpt_amount
+                if not related:
+                    values = {'ded_percentage':expense_percentage,
+                              'ded_amount':exmpt_amount,
+                              'amount_total':amount_total,
+                              'related':False,
+                              }
+                if related:
+                    values = {'ded_percentage':expense_percentage,
+                              'ded_amount':0,
+                              'amount_total':0,
+                              'related':True,
+                              }
+                return {'value':values}
+        return False
     _columns = {
-                'statement_a':fields.many2one('product.product','Expense',domain=[('expense', '=', True),('sale_ok', '=', True)],ondelete='set null',required=True),
-                'quantity':fields.float('Quantity',size=16),
-                'uom':fields.char('UOM',size=16),
+                'statement_b':fields.many2one('product.product','Expense',domain=[('expense', '=', True),('sale_ok', '=', True)],ondelete='set null',required=True),
                 'unit_cost':fields.float('Amount',size=16),
-                'amount':fields.function(get_total_multiplication,string='Sub Total',type='float',method=True),
-                'description':fields.text('Description'),
                 'assess_menu_id2':fields.many2one('assessment.window','Expense',ondelete='set null'),
-                'amount_total':fields.float('Total Amount',size=16),
+                'ded_percentage':fields.float('Deducted(%)',states={'unsaved':[('readonly',True)]},readonly=False),
+                'ded_amount':fields.float('Amount Deducted',states={'unsaved':[('readonly',True)]},readonly=False),
+                'amount_total':fields.float('Sub Total',states={'unsaved':[('readonly',True)]},readonly=False),
+                'related':fields.boolean('Related',states={'unsaved':[('readonly',True)]},readonly=False),
+                'state': fields.selection([
+                    ('unsaved', 'Submitted'),
+                    ('saved', 'Notice Send'),
+                    ],'status', readonly=False),
                 }
     _defaults = {
-        'description':'Expense',
-        'uom':'Unit',
-        'quantity':1
+                'state':'unsaved'
     }
         
 assessment_expense_line()
 
 
+class assessment_expense_line_copy(osv.osv):
+    
+    _name = 'assessment.window.line2.copy'
+   
+    _columns = {
+                'statement_b':fields.many2one('product.product','Expense',domain=[('expense', '=', True),('sale_ok', '=', True)],ondelete='set null',required=True),
+                'unit_cost':fields.float('Amount',size=16),
+                'assess_menu_id2_copy':fields.many2one('assessment.window','ExpenseCopy',ondelete='set null'),
+                'ded_percentage':fields.float('Deducted(%)'),
+                'ded_amount':fields.float('Amount Deducted'),
+                'amount_total':fields.float('Sub Total'),
+                'related':fields.boolean('Related'),
+                }
+        
+assessment_expense_line_copy()
+
 
 class assessment_window(osv.osv):
     
     _name = 'assessment.window'
+    _inherit = ['mail.thread', 'ir.needaction_mixin']
+    
+    
     def _total_amount_wakf(self, cr, uid, ids, field_name, arg, context=None):
         val1 = 0
         res = {}
@@ -367,8 +499,13 @@ class assessment_window(osv.osv):
             res[order.id] = {
             'total_income' : 0,
             }
-            for line in order.assess_line_id1:
-                val1 += line.amount
+            state = order.state
+            if state not in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']: 
+                for line in order.assess_line_id1:
+                    val1 += line.amount_total
+            if state in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']: 
+                for line in order.assess_line_id1_copy:
+                    val1 += line.amount_total
             res[order.id]['total_income']=val1          
         return res
     def _total_amount_wakf1(self, cr, uid, ids, field_name, arg, context=None):
@@ -378,8 +515,13 @@ class assessment_window(osv.osv):
             res[order.id] = {
             'amount_total1' : 0,
             }
-            for line in order.assess_line_id1:
-                val1 += line.amount
+            state = order.state
+            if state not in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']: 
+                for line in order.assess_line_id1:
+                    val1 += line.amount_total
+            if state in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']: 
+                for line in order.assess_line_id1_copy:
+                    val1 += line.amount_total
             res[order.id]['amount_total1']=val1          
         return res
     def _total_amount_wakf2(self, cr, uid, ids, field_name, arg, context=None):
@@ -389,8 +531,13 @@ class assessment_window(osv.osv):
             res[order.id] = {
             'total_expense' : 0,
             }
-            for line in order.assess_line_id2:
-                val1 += line.amount
+            state = order.state
+            if state not in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']: 
+                for line in order.assess_line_id2:
+                    val1 += line.amount_total
+            if state in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']: 
+                for line in order.assess_line_id2_copy:
+                    val1 += line.amount_total
             res[order.id]['total_expense']=val1          
         return res
     def _total_amount_wakf3(self, cr, uid, ids, field_name, arg, context=None):
@@ -400,8 +547,13 @@ class assessment_window(osv.osv):
             res[order.id] = {
             'amount_total2' : 0,
             }
-            for line in order.assess_line_id2:
-                val1 += line.amount
+            state = order.state
+            if state not in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']: 
+                for line in order.assess_line_id2:
+                    val1 += line.amount_total
+            if state in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']: 
+                for line in order.assess_line_id2_copy:
+                    val1 += line.amount_total
             res[order.id]['amount_total2']=val1          
         return res
     def get_total(self, cr, uid, ids, fields, arg, context):
@@ -414,88 +566,98 @@ class assessment_window(osv.osv):
         values = {}
         id_self = self.pool.get('assessment.window')
         if reg_no and acc_year:
-            condition = [('name', '=', reg_no)]
+            condition = [('id','=',acc_year)]
+            search_fiscal = self.pool.get('account.fiscalyear').search(cr,uid,condition)
+            browse_fiscal = self.pool.get('account.fiscalyear').browse(cr,uid,search_fiscal)[0]
+            acc_year = browse_fiscal.name
+            year_left = int(acc_year[:4])
+            year_previous = '%d-%d'%(year_left-1,year_left)
+            search_fiscal = self.pool.get('account.fiscalyear').search(cr,uid,[('name','=',year_previous)])
+            if not search_fiscal:
+                return {'value':{
+                            'line_1': 0,
+                            'line_2': 0,
+                            'line_3': 0,
+                    }}
+                raise osv.except_osv(_('Warning!'), _('Please set %s fiscal year')%(year_previous))
+            browse_fiscal = self.pool.get('account.fiscalyear').browse(cr,uid,search_fiscal)[0]
+            previous_year_id = browse_fiscal.id
+            condition = [('acc_year','=',previous_year_id),('name', '=', reg_no),('state','in', ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'])]
             search_acc = id_self.search(cr,uid,condition,context=context)
-            ids_acc = id_self.browse(cr,uid,search_acc)
-            acc_year_large = 0
-            for val in ids_acc:
-                if acc_year_large <= int(val.acc_year):
-                    if int(val.acc_year) < int(acc_year):
-                        acc_year_large = int(val.acc_year)      
-            acc_year_large = str(acc_year_large)
-            condition = [('acc_year', '=', acc_year_large),('name', '=', reg_no)]
-            search_acc = id_self.search(cr,uid,condition,context=context)
-            if search_acc:
-                kaivasam = id_self.browse(cr,uid,search_acc)[0].line_1
-                bank = id_self.browse(cr,uid,search_acc)[0].line_2
-                dhanyam = id_self.browse(cr,uid,search_acc)[0].line_3
-                values = {
+            if search_acc:    
+                ids_acc = id_self.browse(cr,uid,search_acc)[0]
+                kaivasam = ids_acc.line_1
+                bank = ids_acc.line_2
+                dhanyam = ids_acc.line_3
+                return {'value':{
                             'line_1': kaivasam,
                             'line_2': bank,
                             'line_3': dhanyam,
                
-                    }
+                    }}
             else:
-                values ={
+                raise osv.except_osv(_('Warning!'), _('%s year datas not received yet')%(year_previous))
+                return {'value':{
                             'line_1': 0,
                             'line_2': 0,
                             'line_3': 0,
-                              }
+                              }}
                 
         return {'value' : values}
     def button_calculate(self,cr,uid,ids,fields,arg,context=None):
-        exempted_total = 0
-        tot_amount_inc = 0
-        exempted_list_of_ids = []
-        exempted_list_of_amount = []
-        deducted_total = 0
-        tot_amount_exp = 0
-        deducted_list_of_ids = []
-        deducted_list_of_amount = []
+        unit_cost_income = 0
+        unit_cost_expense = 0
+        exempted_income = 0
+        ded_income = 0
+        total_income = 0
+        total_expense = 0
+        net = 0
+        net1 = 0
+        contri = 0
         dicti = {}
         for rec in self.browse(cr,uid,ids,context=context):
             dicti[rec.id] = {'exempted':0.0,
                              'deducted':0.0,
                              'total_income_final':0.0,
-                             'total_expense_final':0.0
+                             'total_expense_final':0.0,
+                             'net_income':0.0,
+                             'contribution_amount':0.0,
+                             'munbaki':0.0
                              }
-            for line in rec.assess_line_id1:    ##################  line of income ######################
-                property = line.statement_a.id
-                amount = line.unit_cost or False
-                tot_amount_inc = tot_amount_inc + amount
-                property_search = self.pool.get('product.product').search(cr,uid,[('id','=',property),('income','=',True)])
-                if property_search:
-                    product_browse_percentage = self.pool.get('product.product').browse(cr,uid,property_search)[0].percentage_income
-                    exempted_total = exempted_total + amount * product_browse_percentage / 100
-                    if product_browse_percentage != 0:
-                        exempted_list_of_ids.append(property)  # Exempted IDs
-                        exempted_list_of_amount.append(amount)  # Exempted Amount
-            for line in rec.assess_line_id2:    ##################  line of Expense ######################
-                property = line.statement_a.id
-                amount = line.unit_cost or False
-                tot_amount_exp = tot_amount_exp + amount
-                property_search = self.pool.get('product.product').search(cr,uid,[('id','=',property),('expense','=',True)],context=context)
-                if property_search:
-                    browse_ids = self.pool.get('product.product').browse(cr,uid,property_search,context=context)[0]
-                    expense_percentage = browse_ids.percentage_expense
-                    relation = browse_ids.deductable # boolean
-                    if relation:
-                        related_income = browse_ids.related_id.id  # related income
-                        for income in rec.assess_line_id1:
-                            if relation == income.statement_a:
-                                amount_income = income.unit_cost
-                                deducted_total = deducted_total + amount_income * expense_percentage / 100  
-                                deducted_list_of_ids.append(property)                                      ## Deducted IDs
-                                deducted_list_of_amount.append(amount_income * expense_percentage / 100)   ## Deducted Amount
-                    else:
-                        if expense_percentage != 0:
-                            deducted_total = deducted_total + amount * expense_percentage / 100
-                            deducted_list_of_ids.append(property)                                      ## Deducted IDs
-                            deducted_list_of_amount.append(amount * expense_percentage / 100)   ## Deducted Amount
-            dicti[rec.id]['exempted'] = exempted_total or False
-            dicti[rec.id]['deducted'] = deducted_total or False
-            dicti[rec.id]['total_income_final'] = tot_amount_inc - exempted_total or False
-            dicti[rec.id]['total_expense_final'] = tot_amount_exp - deducted_total or False
+            kaivasam = rec.line_1
+            bank = rec.line_2
+            dhanyam = rec.line_3
+            munbaki = kaivasam + bank + dhanyam
+            state = rec.state
+            if state not in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']:     
+                for line in rec.assess_line_id1:    ##################  line of income ######################
+                    unit_cost_income = unit_cost_income +line.unit_cost
+                    exempted_income = exempted_income + line.exmpt_amount
+                total_income = unit_cost_income
+                for line in rec.assess_line_id2:    ##################  line of Expense ######################
+                    unit_cost_expense = unit_cost_expense +line.unit_cost
+                    ded_income = ded_income + line.ded_amount
+            if state in ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed']:     
+                for line in rec.assess_line_id1_copy:    ##################  line of income ######################
+                    unit_cost_income = unit_cost_income +line.unit_cost
+                    exempted_income = exempted_income + line.exmpt_amount
+                total_income = unit_cost_income
+                for line in rec.assess_line_id2_copy:    ##################  line of Expense ######################
+                    unit_cost_expense = unit_cost_expense +line.unit_cost
+                    ded_income = ded_income + line.ded_amount
+            total_expense = unit_cost_expense - ded_income
+            net1 = total_income - (ded_income + munbaki + exempted_income)
+            if net1 >= 0:
+                net = net1
+                contri = net * 7 / 100
+            dicti[rec.id]['grand_income'] = total_income or False
+            dicti[rec.id]['exempted'] = exempted_income or False
+            dicti[rec.id]['deducted'] = ded_income or False
+            dicti[rec.id]['total_income_final'] = total_income or False
+            dicti[rec.id]['total_expense_final'] = total_expense or False
+            dicti[rec.id]['net_income'] = net or False
+            dicti[rec.id]['contribution_amount'] = contri or False
+            dicti[rec.id]['munbaki'] = munbaki or False
         return dicti
     
     def final_calculate1(self, cr, uid, ids, fields, arg, context):
@@ -521,11 +683,15 @@ class assessment_window(osv.osv):
         search_condition = [('name', '=', date_of)]
         search_ids = self.pool.get('account.fiscalyear').search(cr, uid, search_condition, context=context)
         similar_objs = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids, context=context)
-        return similar_objs[0].id
+        if similar_objs:
+            return similar_objs[0].id
+        return False
     
-    def on_change_wakf_regno_to_name_new_assess(self, cr, uid, ids, reg_no, context=None):
+    def on_change_wakf_regno_to_name_new_assess(self, cr, uid, ids, reg_no, acc_year, context=None):
         values = {}
+        values1 = {}
         id_res_partner = self.pool.get('res.partner')
+        id_self = self.pool.get('assessment.window')
         if reg_no:
             search_condition = [('wakf_reg_no', '=', reg_no)]
             search_ids = id_res_partner.search(cr, uid, search_condition, context=context)
@@ -543,27 +709,109 @@ class assessment_window(osv.osv):
                             'wakf_id': False,
                             'district':False
                               }
+        if reg_no and acc_year:
+            condition = [('id','=',acc_year)]
+            search_fiscal = self.pool.get('account.fiscalyear').search(cr,uid,condition)
+            browse_fiscal = self.pool.get('account.fiscalyear').browse(cr,uid,search_fiscal)[0]
+            acc_year = browse_fiscal.name
+            year_left = int(acc_year[:4])
+            year_previous = '%d-%d'%(year_left-1,year_left)
+            search_fiscal = self.pool.get('account.fiscalyear').search(cr,uid,[('name','=',year_previous)])
+            if not search_fiscal:
+                return {'value':{
+                            'line_1': 0,
+                            'line_2': 0,
+                            'line_3': 0,
+                    }}
+                raise osv.except_osv(_('Warning!'), _('Please set %s fiscal year')%(year_previous))
+            browse_fiscal = self.pool.get('account.fiscalyear').browse(cr,uid,search_fiscal)[0]
+            previous_year_id = browse_fiscal.id
+            condition = [('acc_year','=',previous_year_id),('name', '=', reg_no),('state','in', ['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'])]
+            search_acc = id_self.search(cr,uid,condition,context=context)
+            if search_acc:    
+                ids_acc = id_self.browse(cr,uid,search_acc)[0]
+                kaivasam = ids_acc.line_1
+                bank = ids_acc.line_2
+                dhanyam = ids_acc.line_3
+                return {'value':{
+                            'line_1': kaivasam,
+                            'line_2': bank,
+                            'line_3': dhanyam,
+               
+                    }}
+            else:
                 
-        return {'value' : values}
+                return {'value':{
+                            'line_1': 0,
+                            'line_2': 0,
+                            'line_3': 0,
+                              }}
+                raise osv.except_osv(_('Warning!'), _('%s year datas not received yet')%(year_previous))
+                
+        return {'value' : dict(values.items() + values1.items())}
     def action_submit(self, cr, uid, ids, context=None):
         follow_list = []
+        values_income = []
+        values_expense = []
         dicto = {}
+        related = False
+        obj_product = self.pool.get('product.product')
         for rec in self.browse(cr, uid, ids, context=context):
+            for line in rec.assess_line_id1:    ##################  line of income ######################
+                product = line.statement_a.id
+                amount = line.unit_cost
+                if product and amount:
+                    search_product = obj_product.search(cr,uid,[('id','=',product)])
+                    if search_product:
+                        browse_income = obj_product.browse(cr,uid,search_product)[0] 
+                        income_percentage = browse_income.percentage_income
+                        exmpt_amount = amount * income_percentage / 100
+                        amount_total = amount - exmpt_amount
+                        values_income.append((0,0,{'statement_a':product,'unit_cost':amount,'exmpt_percentage':income_percentage,'exmpt_amount':exmpt_amount,'amount_total':amount_total}))   
+                ##############################################################
+            for line_exp in rec.assess_line_id2:    ##################  line of expense ######################
+                product = line_exp.statement_b.id
+                amount = line_exp.unit_cost
+                percentage_exp = line_exp.ded_percentage
+                expense_percentage = percentage_exp
+                if product and amount:
+                    search_product = obj_product.search(cr,uid,[('id','=',product)])
+                    if search_product:
+                        browse_income = obj_product.browse(cr,uid,search_product)[0] 
+                        if browse_income.deductable:
+                            related_id = browse_income.related_id.id   # Fetching related id from master table
+                            for line in rec.assess_line_id1:
+                                if line.statement_a.id == related_id:   ## IF matching records on income side
+                                    related_income = line.unit_cost * percentage_exp / 100
+                                    related_expense = amount
+                                    if related_income >= related_expense:
+                                        exmpt_amount = related_expense
+                                        amount_total = related_expense
+                                    else:
+                                        exmpt_amount = related_income
+                                        amount_total = related_expense
+                                    related = True
+                        else:
+                            expense_percentage = browse_income.percentage_expense
+                            deducted_amount = amount * expense_percentage / 100
+                            amount_total = amount - deducted_amount
+                            exmpt_amount = deducted_amount
+                        values_expense.append((0,0,{'related':related,'statement_b':product,'unit_cost':amount,'ded_percentage':expense_percentage,'ded_amount':exmpt_amount,'amount_total':amount_total}))   
+                        related = False
             dicto = {'name':"Submitted",'who':uid,'when':time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)}
             follow_list.append((0,0,dicto))
-            self.write(cr, uid, ids, {'state':'submitted','follow_up_id':follow_list})
+            #self.write(cr, uid, ids, {'assess_line_id1':False})
+        self.write(cr, uid, ids, {'state':'submitted','follow_up_id':follow_list,'assess_line_id1_copy':values_income,'assess_line_id2_copy':values_expense})
         return True
+    
+    #def action_sent_notice(self, cr, uid, ids, context=None):
+    #    follow_list = []
+    #       dicto = {'name':"Notice Send",'who':uid,'when':time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)}
+    #        follow_list.append((0,0,dicto))
+    #        self.write(cr, uid, ids, {'state':'sent_notice','follow_up_id':follow_list})
+    #    return True
     
     def action_sent_notice(self, cr, uid, ids, context=None):
-        follow_list = []
-        dicto = {}
-        for rec in self.browse(cr, uid, ids, context=context):
-            dicto = {'name':"Notice Send",'who':uid,'when':time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)}
-            follow_list.append((0,0,dicto))
-            self.write(cr, uid, ids, {'state':'sent_notice','follow_up_id':follow_list})
-        return True
-    
-    def action_invoice(self, cr, uid, ids, context=None):
         invoice_ids = []
         follow_list = []
         dicto = {}
@@ -579,14 +827,39 @@ class assessment_window(osv.osv):
             ass_year = rec.assess_year.id
             reg_no = rec.name
             search_ids = self.pool.get('product.product').search(cr,uid,[('name','=',"INCOME")])
+            if not search_ids:
+                raise osv.except_osv(_('Warning!'), _('Please set "INCOME" as a Property'))
             income_id = self.pool.get('product.product').browse(cr,uid,search_ids)[0].id
             search_ids = self.pool.get('product.product').search(cr,uid,[('name','=',"EXPENSE")])
+            if not search_ids:
+                raise osv.except_osv(_('Warning!'), _('Please set "EXPENSE" as a Property'))
             expense_id = self.pool.get('product.product').browse(cr,uid,search_ids)[0].id
+            ##############################################################################################################
+            search_ids = self.pool.get('account.account').search(cr,uid,[('name','=',"Accounts Receivable")])
+            if not search_ids:
+                raise osv.except_osv(_('Warning!'), _('Please create an account "Accounts Receivable" first'))
+            account_id = self.pool.get('account.account').browse(cr,uid,search_ids)[0].id
+            
+            search_ids = self.pool.get('account.journal').search(cr,uid,[('name','=',"Assessment Journal")])
+            if not search_ids:
+                raise osv.except_osv(_('Warning!'), _('Please create "Assessment Journal" First'))
+            journal_id = self.pool.get('account.journal').browse(cr,uid,search_ids)[0].id
             invoice_ids.append((0,0,{'product_id':income_id,'name':"Income(Processed)",'quantity':1,'price_unit':price_unit_income,'new_amount':new_amount_income,'sws':False}))   # sws =True, 7% calculation disabled
             invoice_ids.append((0,0,{'product_id':expense_id,'name':"Income(Processed)",'quantity':1,'price_unit':-price_unit_expense,'new_amount':-new_amount_expense,'sws':False})) # sws =True, 7% calculation disabled
-            self.pool.get('account.invoice').create(cr,uid,{'registration_no':reg_no,'assess_year_saleorder':acc_year,'account_year_saleorder':ass_year,'is_assessment':True,'appli_no':False,'account_id':1,'journal_id':'1','partner_id':output,'invoice_line':invoice_ids,'total_income_saleorder':price_unit_income,'total_expense_saleorder':price_unit_expense})
+            id_create = self.pool.get('account.invoice').create(cr,uid,{'assessment_type':'assessment','registration_no':reg_no,'assess_year_saleorder':acc_year,'account_year_saleorder':ass_year,'is_assessment':True,'appli_no':False,'account_id':account_id,'journal_id':journal_id,'partner_id':output,'invoice_line':invoice_ids,'total_income_saleorder':price_unit_income,'total_expense_saleorder':price_unit_expense})
+        
         self.write(cr, uid, ids, {'state':'invoiced','follow_up_id':follow_list})
-        return True
+        return {
+            'type': 'ir.actions.act_window',
+            'name': "Invoice form",
+            'view_type': 'form',
+            'view_mode': 'form',
+            'context': context,
+            'res_id':id_create,
+            #'domain' : [('order_id','in',sale_ids)],
+            'res_model': 'account.invoice',
+            'target': 'new',
+            'nodestroy': True,}
     
     def action_showcause(self, cr, uid, ids, context=None):
         follow_list = []
@@ -629,33 +902,79 @@ class assessment_window(osv.osv):
             list_unlink = [ invoice.id for invoice in self.pool.get('account.invoice').browse(cr,uid,search_invoice)]
             self.pool.get('account.invoice').unlink(cr,uid,list_unlink,context=context)
             self.write(cr, uid, ids, {'state':'RR','follow_up_id':follow_list})
-            self.pool.get('revenue.recovery').create(cr,uid,{'reg_no':reg_no,'partner_id':output,'assess_year':ass_year})
-        return True
+            ##########################################  RR Created  ##########################################
+            id_create = self.pool.get('revenue.recovery').create(cr,uid,{'from_a':'assessment','reg_no':reg_no,'partner_id':output,'assess_year':ass_year})
+       
+        return {
+            'type': 'ir.actions.act_window',
+            'name': "Revenue Recovery form",
+            'view_type': 'form',
+            'view_mode': 'form',
+            'context': context,
+            'res_id':id_create,
+            #'domain' : [('order_id','in',sale_ids)],
+            'res_model': 'revenue.recovery',
+            'target': 'new',
+            'nodestroy': True,}
     
     def action_re_assess(self, cr, uid, ids, context=None):
         follow_list = []
+        income_list = []
+        expense_list = []
         dicto = {}
         for rec in self.browse(cr, uid, ids, context=context):
             dicto = {'name':"Re-assessment",'who':uid,'when':time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)}
             follow_list.append((0,0,dicto))
+            reg_no = rec.name
             output = rec.wakf_id.id
             acc_year = rec.acc_year.id
             ass_year = rec.assess_year.id
+            district = rec.district.id
+            taluk = rec.taluk.id
+            village = rec.village.id
+            assess_date = rec.date_from
+            for income in rec.assess_line_id1:
+                property = income.statement_a.id
+                unit_cost = income.unit_cost
+                percentage = income.exmpt_percentage
+                exmpt_amount = income.exmpt_amount
+                total = income.amount_total
+                income_list.append((0,0,{'statement_a':property,'unit_cost':unit_cost,'exmpt_percentage':percentage,'exmpt_amount':exmpt_amount,'amount_total':total}))
+            for expense in rec.assess_line_id2:
+                property = expense.statement_b.id
+                unit_cost = expense.unit_cost
+                percentage = expense.ded_percentage
+                exmpt_amount = expense.ded_amount
+                total = expense.amount_total
+                expense_list.append((0,0,{'statement_b':property,'unit_cost':unit_cost,'ded_percentage':percentage,'ded_amount':exmpt_amount,'amount_total':total}))
+            #################################### unlinking ###############################
             self.write(cr, uid, ids, {'state':'re-assess','follow_up_id':follow_list})
             search_invoice = self.pool.get('account.invoice').search(cr,uid,[('partner_id','=',output),('assess_year_saleorder','=',acc_year),('account_year_saleorder','=',ass_year),('is_assessment','=',True),('appli_no','=',False),('assessment_type','=','assessment'),('state','=','draft')])
             list_unlink = [ invoice.id for invoice in self.pool.get('account.invoice').browse(cr,uid,search_invoice)]
             self.pool.get('account.invoice').unlink(cr,uid,list_unlink,context=context)
+            ##############################################################################
+            create_id = self.create(cr,uid,{'name':reg_no,'acc_year':acc_year,'wakf_id':output,'district':district,'taluk':taluk,'village':village,'date_from':assess_date,'assess_year':ass_year,'revised':True,'assess_line_id1':income_list,'assess_line_id2':expense_list,'state':'submitted'})
             self.write(cr, uid, ids, {'state':'re-assess','follow_up_id':follow_list})
-        return True
+        return {
+            'type': 'ir.actions.act_window',
+            'name': "Re-assessment form",
+            'view_type': 'form',
+            'view_mode': 'form',
+            'context': context,
+            'res_id':create_id,
+            #'domain' : [('order_id','in',sale_ids)],
+            'res_model': 'assessment.window',
+            'target': 'new',
+            'nodestroy': True,}
     
-    def unlink(self, cr, uid, ids, context=None):
-        if context is None:
-            context = {}
-        """Allows to delete assessment lines in other states"""
-        for rec in self.browse(cr, uid, ids, context=context):
-            if rec.state not in ['submitted']:
-                raise osv.except_osv(_('Invalid Action!'), _('Cannot delete an Assessment Record which is in state \'%s\'.') %(rec.state,))
-        return super(assessment_window, self).unlink(cr, uid, ids, context=context)
+    #def unlink(self, cr, uid, ids, context=None):
+    #    if context is None:
+    #        context = {}
+    #    """Allows to delete assessment lines in other states"""
+    #    for rec in self.browse(cr, uid, ids, context=context):
+    #        if rec.state not in ['submitted']:
+    #            raise osv.except_osv(_('Invalid Action!'), _('Cannot delete an Assessment Record which is in state \'%s\'.') %(rec.state,))
+    #    return super(assessment_window, self).unlink(cr, uid, ids, context=context)
     
     def _get_schedule_ids_for_order(self, cr, uid, ids, context=None):
         for rec in self.browse(cr,uid,ids):
@@ -674,7 +993,9 @@ class assessment_window(osv.osv):
                 #'acc_year':fields.char('Account Year',size=16,required=False),
                 'assess_year':fields.many2one('account.fiscalyear','Assessment Year',size=16,required=False),
                 'assess_line_id1':fields.one2many('assessment.window.line1','assess_menu_id1','Income'),
+                'assess_line_id1_copy':fields.one2many('assessment.window.line1.copy','assess_menu_id1_copy','Income copy',states={'submitted':[('readonly',True)],'sent_notice':[('readonly',True)],'invoiced':[('readonly',True)],'showcause':[('readonly',True)],'RR':[('readonly',True)],'appeal':[('readonly',True)],'re-assess':[('readonly',True)]}),
                 'assess_line_id2':fields.one2many('assessment.window.line2','assess_menu_id2','Expense'),
+                'assess_line_id2_copy':fields.one2many('assessment.window.line2.copy','assess_menu_id2_copy','Expense copy',states={'submitted':[('readonly',True)],'sent_notice':[('readonly',True)],'invoiced':[('readonly',True)],'showcause':[('readonly',True)],'RR':[('readonly',True)],'appeal':[('readonly',True)],'re-assess':[('readonly',True)]}),
                 'total_income':fields.function(_total_amount_wakf,multi='sums',string='Total Income',store=False),
                 'total_expense':fields.function(_total_amount_wakf2,multi='sums2',string='Total Expense',store=False),
                 'assess_amount':fields.function(get_total,string='Difference Amount',store=True,type='float',method=False),
@@ -682,23 +1003,24 @@ class assessment_window(osv.osv):
                 'amount_total2':fields.function(_total_amount_wakf3,multi='sums3',string='Subtotal',store=False),
                 'description2':fields.text('Extra info',size=32),
                 'line_1':fields.float('kaivasam'),
-                'line_2':fields.float('bank'),
+                'line_2':fields.float('bankil'),
                 'line_3':fields.float('Dhanyam'),
                 'user_id':fields.char('user id',size=16),
+                'grand_income':fields.function(button_calculate,string='Total Income',type='float',multi='all',store=True,method=False),
                 'exempted':fields.function(button_calculate,string='Exempted',type='float',multi='all',store=True,method=False),
                 'deducted':fields.function(button_calculate,string='Deductable',type='float',multi='all',store=True,method=False),
+                'munbaki':fields.function(button_calculate,string='Munbaki',type='float',multi='all',store=True,method=False),
                 'total_income_final':fields.function(button_calculate,string='Total income',type='float',multi='all',store=True,method=False),
                 'total_expense_final':fields.function(button_calculate,string='Total expense',type='float',multi='all',store=True,method=False),
-                'showcause_notice_no':fields.char('Showcause Notice No',size=16),
-                'showcause_tick':fields.boolean('Showcause tick',size=16),
+                'net_income':fields.function(button_calculate,string='Net Income',type='float',multi='all',store=True,method=False),
+                'contribution_amount':fields.function(button_calculate,string='Contribution',type='float',multi='all',store=True,method=False),
+                #'showcause_notice_no':fields.char('Showcause Notice No',size=16),
+                #'showcause_tick':fields.boolean('Showcause tick',size=16),
                 'follow_up_id':fields.one2many('follow.up','follow_id','Follow Up'),
                 'appeal_no':fields.char('Appeal or Case No',size=16),
                 'appeal_details':fields.text('Judgement/Order Details',size=16),
                 'appeal_date':fields.date('Judgement/Order Date',size=16),
                 'revised':fields.boolean('Revised'),
-                'appeal_no':fields.char('Order No',size=16),
-                'appeal_details':fields.text('Order Details',size=128),
-                'appeal_date':fields.date('Order Date',size=16),
                 'state': fields.selection([
                     ('submitted', 'Submitted'),
                     ('sent_notice', 'Notice Send'),
@@ -709,13 +1031,13 @@ class assessment_window(osv.osv):
                     ('re-assess', 'Re-Assessment'),
                     ('completed', 'Completed'),
                     ],'status', readonly=False),
-                
+                'company_id': fields.many2one('res.company', 'Company', required=False)
                 }
     _defaults = {
                  'date_from': lambda *a: time.strftime(DEFAULT_SERVER_DATE_FORMAT),
                  'user_id': lambda obj, cr, uid, context: uid,
                  'assess_year': _deflt_ass_year,
-                 'showcause_notice_no':"0"
+                 'company_id': lambda self,cr,uid,ctx: self.pool['res.company']._company_default_get(cr,uid,object='assessment.window',context=ctx)
                 }
 assessment_window()
 ####################################################################################################################################
@@ -761,6 +1083,35 @@ class follow_up(osv.osv):
                 
                 }
 follow_up()
+
+
+class account_voucher_inherit(osv.osv):
+    
+    _inherit = 'account.voucher'
+    
+    def on_change_wakf_regno_to_name(self, cr, uid, ids, reg_no, context=None):
+        values = {}
+        if reg_no:
+            id_res_partner=self.pool.get('res.partner')
+            search_condition = [('wakf_reg_no', '=', reg_no)]
+            search_ids = id_res_partner.search(cr, uid, search_condition, context=context)
+            if search_ids:
+                similar_objs = id_res_partner.browse(cr, uid, search_ids, context=context)
+                partner_id = id_res_partner.browse(cr, uid, search_ids, context=context)[0].id
+                values={'partner_id':partner_id,
+                        }
+                return {'value' :values}
+        else:
+            return {'value' :False}               
+            raise osv.except_osv(_('Warning!'), _('%d is not a registered wakf')%reg_no)
+
+    
+    _columns = {
+            'registration_no':fields.integer('Registration No')
+                }
+    
+
+account_voucher_inherit()
 
 
 
