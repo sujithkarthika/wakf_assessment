@@ -101,6 +101,7 @@
 	  			<field name="arch" type="xml">
 					<xpath expr="//tree[@string='Invoice']/field[@name='partner_id']" position="before">
 						 <field string="Registration No" name="registration_no"></field>
+						 <field string="Application No" name="appli_no"></field>
 					</xpath>
 					
 					<xpath expr="//tree[@string='Invoice']/field[@name='amount_untaxed']" position="replace">
@@ -272,6 +273,7 @@
   			<field name="arch" type="xml">	
   				<xpath expr="//search[@string='Search Invoice']/field[@name='number']" position="replace">
   					<field name="registration_no" string="Register Number" filter_domain="[(('registration_no','=',self))]"/>
+  					<field name="appli_no" string="Application Number" filter_domain="[(('appli_no','=',self))]"/>
   				</xpath>
   			</field>
   			</record>

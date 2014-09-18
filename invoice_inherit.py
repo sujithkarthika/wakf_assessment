@@ -1,14 +1,83 @@
 from osv import osv
 from osv import fields
+from tools.translate import _
+import addons.decimal_precision as dp
 from tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 from datetime import date
-import addons.decimal_precision as dp
+
 import time
 
+from lxml import etree
 
 class invoice_inherit(osv.osv):
     
     _inherit = 'account.invoice'
+    ########################################## UPDATES ###############################################
+    ###################################################################################################
+    def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
+        journal_obj = self.pool.get('account.journal')
+        if context is None:
+            context = {}
+
+        if context.get('active_model', '') in ['res.partner'] and context.get('active_ids', False) and context['active_ids']:
+            partner = self.pool.get(context['active_model']).read(cr, uid, context['active_ids'], ['supplier','customer'])[0]
+            if not view_type:
+                view_id = self.pool.get('ir.ui.view').search(cr, uid, [('name', '=', 'account.invoice.tree')])
+                view_type = 'tree'
+            if view_type == 'form':
+                if partner['supplier'] and not partner['customer']:
+                    view_id = self.pool.get('ir.ui.view').search(cr,uid,[('name', '=', 'account.invoice.supplier.form')])
+                elif partner['customer'] and not partner['supplier']:
+                    view_id = self.pool.get('ir.ui.view').search(cr,uid,[('name', '=', 'account.invoice.form')])
+        if view_id and isinstance(view_id, (list, tuple)):
+            view_id = view_id[0]
+        res = super(invoice_inherit,self).fields_view_get(cr, uid, view_id=view_id, view_type=view_type, context=context, toolbar=toolbar, submenu=submenu)
+
+        type = context.get('journal_type', False)
+        for field in res['fields']:
+            if field == 'journal_id' and type:
+                journal_select = journal_obj._name_search(cr, uid, '', [('type', '=', type)], context=context, limit=None, name_get_uid=1)
+                res['fields'][field]['selection'] = journal_select
+
+        doc = etree.XML(res['arch'])
+
+        if context.get('type', False):
+            for node in doc.xpath("//field[@name='partner_bank_id']"):
+                if context['type'] == 'in_refund':
+                    node.set('domain', "[('partner_id.ref_companies', 'in', [company_id])]")
+                elif context['type'] == 'out_refund':
+                    node.set('domain', "[('partner_id', '=', partner_id)]")
+            res['arch'] = etree.tostring(doc)
+
+        if view_type == 'search':
+            if context.get('type', 'in_invoice') in ('out_invoice', 'out_refund'):
+                for node in doc.xpath("//group[@name='extended filter']"):
+                    doc.remove(node)
+                for node in doc.xpath("//field[@string='Application Number']"):
+                    doc.remove(node)
+            if context.get('type', 'out_invoice') in ('in_invoice', 'in_refund'):
+                for node in doc.xpath("//field[@string='Register Number']"):
+                    doc.remove(node)
+            res['arch'] = etree.tostring(doc)
+
+        if view_type == 'tree':
+            partner_string = _('Wakf Name')
+            if context.get('type', 'out_invoice') in ('in_invoice', 'in_refund'):
+                partner_string = _('Applicant Name')
+                for node in doc.xpath("//field[@name='reference']"):
+                    node.set('invisible', '0')
+            for node in doc.xpath("//field[@name='partner_id']"):
+                node.set('string', partner_string)
+                if partner_string == 'Applicant Name':
+                    for node in doc.xpath("//field[@name='registration_no']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                if partner_string == 'Wakf Name':
+                    for node in doc.xpath("//field[@name='appli_no']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+            res['arch'] = etree.tostring(doc)
+        return res
     
     def _amount_all(self, cr, uid, ids, name, args, context=None):
         res = {}
@@ -372,7 +441,6 @@ class assessment_income_line(osv.osv):
                 values = {'exmpt_percentage':income_percentage,
                           'exmpt_amount':exmpt_amount,
                           'amount_total':amount_total,
-                          
                           'exmpt_percentage_copy':income_percentage,
                           'exmpt_amount_copy':exmpt_amount,
                           'amount_total_copy':amount_total

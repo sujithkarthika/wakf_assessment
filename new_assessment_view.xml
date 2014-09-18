@@ -108,7 +108,7 @@
 									<field name="exmpt_percentage"/>
 									<field name="exmpt_amount"/>
 									<field name="amount_total"/>
-									
+									<field name="state" invisible="1"/>
 								</tree>		
 								
 			
