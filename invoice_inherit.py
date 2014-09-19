@@ -886,8 +886,8 @@ class assessment_window(osv.osv):
         for rec in self.browse(cr, uid, ids, context=context):
             dicto = {'name':"Invoiced(Draft)",'who':uid,'when':time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)}
             follow_list.append((0,0,dicto))
-            price_unit_income = rec.total_income_final
-            new_amount_income = rec.total_income_final
+            price_unit_income = rec.net_income
+            new_amount_income = rec.net_income
             price_unit_expense = rec.total_expense_final
             new_amount_expense = rec.total_expense_final
             output = rec.wakf_id.id
@@ -913,7 +913,7 @@ class assessment_window(osv.osv):
                 raise osv.except_osv(_('Warning!'), _('Please create "Assessment Journal" First'))
             journal_id = self.pool.get('account.journal').browse(cr,uid,search_ids)[0].id
             invoice_ids.append((0,0,{'product_id':income_id,'name':"Income(Processed)",'quantity':1,'price_unit':price_unit_income,'new_amount':new_amount_income,'sws':True}))   # sws =True, 7% calculation disabled
-            invoice_ids.append((0,0,{'product_id':expense_id,'name':"Income(Processed)",'quantity':1,'price_unit':-price_unit_expense,'new_amount':-new_amount_expense,'sws':True})) # sws =True, 7% calculation disabled
+            #invoice_ids.append((0,0,{'product_id':expense_id,'name':"Income(Processed)",'quantity':1,'price_unit':-price_unit_expense,'new_amount':-new_amount_expense,'sws':True})) # sws =True, 7% calculation disabled
             id_create = self.pool.get('account.invoice').create(cr,uid,{'assessment_type':'assessment','registration_no':reg_no,'assess_year_saleorder':acc_year,'account_year_saleorder':ass_year,'is_assessment':True,'appli_no':False,'account_id':account_id,'journal_id':journal_id,'partner_id':output,'invoice_line':invoice_ids,'total_income_saleorder':price_unit_income,'total_expense_saleorder':price_unit_expense})
         
         self.write(cr, uid, ids, {'state':'invoiced','follow_up_id':follow_list})
