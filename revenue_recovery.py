@@ -1,6 +1,7 @@
 from osv import osv
 from osv import fields
 
+
 import time
 
 from tools.translate import _
