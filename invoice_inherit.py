@@ -912,7 +912,7 @@ class assessment_window(osv.osv):
             if not search_ids:
                 raise osv.except_osv(_('Warning!'), _('Please create "Assessment Journal" First'))
             journal_id = self.pool.get('account.journal').browse(cr,uid,search_ids)[0].id
-            invoice_ids.append((0,0,{'product_id':income_id,'name':"Income(Processed)",'quantity':1,'price_unit':price_unit_income,'new_amount':new_amount_income,'sws':True}))   # sws =True, 7% calculation disabled
+            invoice_ids.append((0,0,{'product_id':income_id,'name':" Net Income",'quantity':1,'price_unit':price_unit_income,'new_amount':new_amount_income,'sws':True}))   # sws =True, 7% calculation disabled
             #invoice_ids.append((0,0,{'product_id':expense_id,'name':"Income(Processed)",'quantity':1,'price_unit':-price_unit_expense,'new_amount':-new_amount_expense,'sws':True})) # sws =True, 7% calculation disabled
             id_create = self.pool.get('account.invoice').create(cr,uid,{'assessment_type':'assessment','registration_no':reg_no,'assess_year_saleorder':acc_year,'account_year_saleorder':ass_year,'is_assessment':True,'appli_no':False,'account_id':account_id,'journal_id':journal_id,'partner_id':output,'invoice_line':invoice_ids,'total_income_saleorder':price_unit_income,'total_expense_saleorder':price_unit_expense})
         
@@ -1021,7 +1021,7 @@ class assessment_window(osv.osv):
             list_unlink = [ invoice.id for invoice in self.pool.get('account.invoice').browse(cr,uid,search_invoice)]
             self.pool.get('account.invoice').unlink(cr,uid,list_unlink,context=context)
             ##############################################################################
-            create_id = self.create(cr,uid,{'name':reg_no,'acc_year':acc_year,'wakf_id':output,'district':district,'taluk':taluk,'village':village,'date_from':assess_date,'assess_year':ass_year,'revised':True,'assess_line_id1':income_list,'assess_line_id2':expense_list,'state':'submitted'})
+            create_id = self.create(cr,uid,{'name':reg_no,'acc_year':acc_year,'wakf_id':output,'district':district,'taluk':taluk,'village':village,'date_from':assess_date,'assess_year':ass_year,'revised':True,'assess_line_id1':income_list,'assess_line_id2':expense_list})
             self.write(cr, uid, ids, {'state':'re-assess','follow_up_id':follow_list})
         return {
             'type': 'ir.actions.act_window',
