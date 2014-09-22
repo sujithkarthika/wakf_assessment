@@ -3,6 +3,7 @@ from osv import fields
 from tools import  DEFAULT_SERVER_DATETIME_FORMAT
 from datetime import date
 import time
+from tools.translate import _
 
 
 class bj_assessment_window(osv.osv):

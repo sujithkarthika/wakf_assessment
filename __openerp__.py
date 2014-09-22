@@ -11,7 +11,7 @@
     'data': ['BJ_assessment_view.xml',
              'BJ_search.xml',
              'BJ_slab_view.xml',
-             'invoice_inherit_view.xml',
+             
              'new_assessment_view.xml',
              'revenue_recovery_view.xml',
              'sale_order_view.xml',

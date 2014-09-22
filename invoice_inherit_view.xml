@@ -28,32 +28,7 @@
                	 </group>
                	 <group attrs="{'invisible':[('is_assessment', '!=', True)]}"></group>
                	 </xpath>
-               	 <!--  
-				<xpath expr="//form/sheet/group/group[1]" position="before">
-					
-             	    <div class="oe_title" attrs="{'invisible':[('is_assessment', '!=', True)]}">
-                            <div class="oe_edit_only">
-                                <label for="name" string="Registration No:"/>
-                            </div>
-                            <h1>
-                                <field name="registration_no" on_change="on_change_wakf_regno_to_name(registration_no)"/>
-                            </h1>
-                       </div>
-                       <group></group>
-               </xpath>
-				 <xpath expr="//form/sheet/group/group[1]" position="before">
-               	     
-             	    <div class="oe_title" attrs="{'invisible':[('is_assessment', '!=', True)]}">
-                            <div class="oe_edit_only">
-                                <label for="name" string="Account Year:" />
-                         </div>
-                            <h1>
-                                <field name="assess_year_saleorder" on_change="on_change_wakf_acc_year_to_name(registration_no,assess_year_saleorder)"/>
-                            </h1>
-                       </div>
-                       <group></group>
-               </xpath>
-               -->
+           
                
                <xpath expr="//form/sheet/group" position="inside">
                    <group attrs="{'invisible':[('is_assessment', '!=', True)]}">
@@ -101,6 +76,7 @@
 	  			<field name="arch" type="xml">
 					<xpath expr="//tree[@string='Invoice']/field[@name='partner_id']" position="before">
 						 <field string="Registration No" name="registration_no"></field>
+						 <field string="Application No" name="appli_no"></field>
 					</xpath>
 					
 					<xpath expr="//tree[@string='Invoice']/field[@name='amount_untaxed']" position="replace">
@@ -139,18 +115,6 @@
   		
   		
   		
-  			 <!--============== Invoice line tree starts=========================== 
-            <record id="invoice_invoice_line_tree_1" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.line.inherited</field>
-  			<field name="model">account.invoice</field>
-  			<field name="inherit_id" ref="account.invoice_form" />
-  			<field name="arch" type="xml">
-  				 <xpath expr="//form/sheet/page[@string='Invoice Lines']/field[@name='invoice_line']/tree[@string='Invoice Lines']/field[@name='quantity']" position="replace">
-  					<field name="quantity"/>
-  				</xpath> 
-  			</field>
-  			</record>
-           ============== Invoice line tree ends=========================== --> 
   		
            <!--============== Invoice receipts inherit form starts (acc.voucher)=========================== -->
             <record id="invoice_customer_invoice_form_1" model="ir.ui.view">
@@ -272,6 +236,7 @@
   			<field name="arch" type="xml">	
   				<xpath expr="//search[@string='Search Invoice']/field[@name='number']" position="replace">
   					<field name="registration_no" string="Register Number" filter_domain="[(('registration_no','=',self))]"/>
+  					<field name="appli_no" string="Application Number" filter_domain="[(('appli_no','=',self))]"/>
   				</xpath>
   			</field>
   			</record>
