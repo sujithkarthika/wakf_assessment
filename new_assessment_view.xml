@@ -28,13 +28,13 @@
                 
                     <form string="Assessment Form" version="7.0">
                     <header>
-                    	<button name="action_submit" string="Submit" type="object" attrs="{'invisible':['|',('state','in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
-                    	<button name="action_sent_notice" string="Sent Notice" type="object" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','submitted')]}"/>
-                		<button name="action_invoice" string="Invoice" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('sent_notice'))]}"/>
-                		<button name="action_showcause" string="Sent ShowCause" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','invoiced')]}"/>
-                		<button name="action_appeal" string="Appeal Received" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('invoiced','showcause'))]}"/>
-                		<button name="action_RR" string="Send RR" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('showcause','appeal','invoiced'))]}"/>
-                		<button name="action_re_assess" string="Re-assessment" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','appeal')]}"/>
+                    	<button name="action_submit" string="Submit" type="object" groups="wakf_assessment.group_assessment_submit" attrs="{'invisible':['|',('state','in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
+                    	<button name="action_sent_notice" string="Sent Notice" type="object" groups="wakf_assessment.group_assessment_invoice" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','submitted')]}"/>
+                		<button name="action_invoice" string="Invoice" type="object" groups="wakf_assessment.group_assessment_invoice" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('sent_notice'))]}"/>
+                		<button name="action_showcause" string="Sent ShowCause" type="object" groups="wakf_assessment.group_assessment_showcause" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','invoiced')]}"/>
+                		<button name="action_appeal" string="Appeal Received" type="object" groups="wakf_assessment.group_assessment_appeal_reassess" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('invoiced','showcause'))]}"/>
+                		<button name="action_RR" string="Send RR" type="object" groups="wakf_assessment.group_assessment_RR" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('showcause','appeal','invoiced'))]}"/>
+                		<button name="action_re_assess" string="Re-assessment" type="object" groups="wakf_assessment.group_assessment_appeal_reassess" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','appeal')]}"/>
                 		<field name="state" widget="statusbar" statusbar_visible="submitted,sent_notice,invoiced,showcause,RR,appeal,re-assess,completed"
                 		/>
                 		

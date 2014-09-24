@@ -28,11 +28,11 @@
                     <form string="BJ Assessment" version="7.0">
                     <header>
                     	
-                    	<button name="action_approve" states="draft" string="Approve" type="object" icon="gtk-go-forward"/>
-                		<button name="action_send" states="approved" string="Send BJ" type="object" icon="gtk-go-forward"/>
-                		<button name="action_cancel" states="approved" string="Cancel BJ" type="object" icon="gtk-goto-last"/>
-                		<button name="action_re_assessment" states="send" string="Cancel and Re-Assessment" type="object" icon="gtk-go-forward"/>
-                		<button name="action_rr" states="send" string="Send RR" type="object" icon="gtk-go-forward"/>
+                    	<button name="action_approve" states="draft" string="Approve" groups="wakf_assessment.group_assessment_submit_bj" type="object" icon="gtk-go-forward"/>
+                		<button name="action_send" states="approved" string="Send BJ" groups="wakf_assessment.group_assessment_send_bj" type="object" icon="gtk-go-forward"/>
+                		<button name="action_cancel" states="approved" string="Cancel BJ" groups="wakf_assessment.group_assessment_cancel_bj" type="object" icon="gtk-goto-last"/>
+                		<button name="action_re_assessment" states="send" string="Cancel and Re-Assessment" groups="wakf_assessment.group_assessment_cancel_bj" type="object" icon="gtk-go-forward"/>
+                		<button name="action_rr" states="send" string="Send RR" groups="wakf_assessment.group_assessment_cancel_bj" type="object" icon="gtk-go-forward"/>
                 		<field name="state" widget="statusbar" statusbar_visible="draft,approved,send,re_assessment,rr,cancelled,completed"/>
                     </header>
                     <sheet>

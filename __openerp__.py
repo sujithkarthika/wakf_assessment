@@ -11,7 +11,8 @@
     'data': ['BJ_assessment_view.xml',
              'BJ_search.xml',
              'BJ_slab_view.xml',
-             
+             'security/wakf_assessment_security.xml',
+             'security/ir.model.access.csv',
              'new_assessment_view.xml',
              'revenue_recovery_view.xml',
              'sale_order_view.xml',

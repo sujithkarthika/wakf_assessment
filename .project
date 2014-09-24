@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>wakf_assesment</name>
+	<name>wakf_assessment</name>
 	<comment></comment>
 	<projects>
-		<project>openerp</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

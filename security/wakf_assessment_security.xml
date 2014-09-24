@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <openerp>
+    <data noupdate="0">
+    <record model="ir.module.category" id="module_category_wakf_assessment_management">
+     <field name="name">WAKF Assessment</field>
+      <field name="description">Helps you manage wakf Assessments.</field> 
+      <field name="sequence">2</field> 
+      </record>
+      
+     <record model="ir.module.category" id="module_category_wakf_bj_management">
+     <field name="name">WAKF BJ Assessment</field>
+      <field name="description">Helps you manage wakf BJ Assessments.</field> 
+      <field name="sequence">3</field> 
+      </record>
+      
+      <record model="ir.module.category" id="module_category_wakf_rr_management">
+     <field name="name">WAKF RR Management</field>
+      <field name="description">Helps you manage wakf RR.</field> 
+      <field name="sequence">4</field> 
+      </record>
+<!-- =======================================  Assessment Non Updates ========================================= -->
+<!-- ========================================================================================================= -->
+<record id="group_assessment_submit" model="res.groups">
+ <field name="name">Can Submit Assessment Details</field> 
+ <field name="category_id" ref="module_category_wakf_assessment_management"/> 
+ <field name="implied_ids" eval="[(4, ref('base.group_sale_manager'))]"/>
+ <field name="users" eval="[(4, ref('base.user_root'))]"/>
+ <field name="comment">The user will be able to submit assessment Details.</field>
+  </record> 
+  
+  <record id="group_assessment_invoice" model="res.groups">
+   <field name="name">Can Invoice Assessment</field> 
+   <field name="category_id" ref="module_category_wakf_assessment_management"/>
+   <field name="implied_ids" eval="[(4, ref('group_assessment_submit'))]"/>
+   <field name="comment">The user will be able to invoice assessment Details</field> 
+ </record>
+ 
+  <record id="group_assessment_showcause" model="res.groups">
+    <field name="name">Can send Show Cause on assessments</field> 
+    <field name="category_id" ref="module_category_wakf_assessment_management"/> 
+	<field name="implied_ids" eval="[(4, ref('group_assessment_submit'))]"/>
+    <field name="comment">The user will be able to send showcause.</field> 
+     </record> 
+     
+     <record id="group_assessment_RR" model="res.groups"> 
+    <field name="name">Can send RR on assessments</field> 
+    <field name="category_id" ref="module_category_wakf_assessment_management"/> 
+	<field name="implied_ids" eval="[(4, ref('group_assessment_submit'))]"/>
+    <field name="comment">The user will be able to send RR</field>
+     </record>
+     
+     <record id="group_assessment_appeal_reassess" model="res.groups"> 
+    <field name="name">Can Re assess on assessments</field> 
+    <field name="category_id" ref="module_category_wakf_assessment_management"/> 
+	<field name="implied_ids" eval="[(4, ref('group_assessment_submit'))]"/>
+    <field name="comment">The user will be able to re assess wakf.</field>
+     </record>
+     
+    <!-- =======================================  BJ Non Updates ========================================= -->
+   <record id="group_assessment_submit_bj" model="res.groups">
+	 <field name="name">Can Approve BJ</field> 
+	 <field name="category_id" ref="module_category_wakf_bj_management"/> 
+	 <field name="comment">The user will be able to approve BJ</field>
+   </record> 
+   
+   <record id="group_assessment_send_bj" model="res.groups">
+	 <field name="name">Can Send BJ</field> 
+	 <field name="category_id" ref="module_category_wakf_bj_management"/> 
+	 <field name="implied_ids" eval="[(4, ref('group_assessment_submit_bj'))]"/>
+	 <field name="comment">The user will be able to send BJ notice.</field>
+	</record> 
+	
+    <record id="group_assessment_cancel_bj" model="res.groups">
+	 <field name="name">Can Cancel BJ</field> 
+	 <field name="category_id" ref="module_category_wakf_bj_management"/> 
+	 <field name="implied_ids" eval="[(4, ref('group_assessment_submit_bj'))]"/>
+	 <field name="comment">The user will be able to cancel BJ.</field>
+    </record> 
+    
+    <!-- =======================================  RR Non Updates ========================================= -->
+    
+    <record id="group_assessment_submit_rr" model="res.groups">
+	 <field name="name">Can Approve RR</field> 
+	 <field name="category_id" ref="module_category_wakf_rr_management"/> 
+	 <field name="comment">The user will be able to Approve RR</field>
+   </record> 
+   
+   <record id="group_assessment_send_rr" model="res.groups">
+	 <field name="name">Can Send RR</field> 
+	 <field name="category_id" ref="module_category_wakf_rr_management"/> 
+	 <field name="implied_ids" eval="[(4, ref('group_assessment_submit_rr'))]"/>
+	 <field name="comment">The user will be able to Send RR.</field>
+	</record> 
+	
+    <record id="group_assessment_cancel_rr" model="res.groups">
+	 <field name="name">Can Cancel RR</field> 
+	 <field name="category_id" ref="module_category_wakf_rr_management"/> 
+	 <field name="implied_ids" eval="[(4, ref('group_assessment_send_rr'))]"/>
+	 <field name="comment">The user will be able to cancel RR.</field>
+    </record>
+   
+   </data>
+     <!-- ======================================================================================================== -->
+   <!-- =======================================  Assessment Updates ========================================= -->
+   <!-- ========================================================================================================== -->
+    
+    
+    <data noupdate="1">
+    <record id="arrear_list_comp_rule" model="ir.rule">
+        <field name="name">Arrear List Rule</field>
+        <field name="model_id" ref="model_arrear_list"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field>
+    </record>
+  
+    <record id="bj_assessment_window_comp_rule" model="ir.rule">
+        <field name="name">BJ Assessment Window Rule</field>
+        <field name="model_id" ref="model_bj_assessment_window"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field>
+    </record>
+
+    <record id="bj_assessment_comp_rule" model="ir.rule">
+        <field name="name">BJ Assessment List Rule</field>
+        <field name="model_id" ref="model_bj_assessment"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field>
+    </record>
+
+    <record id="bj_slab_comp_rule" model="ir.rule">
+        <field name="name">BJ Slab List Rule</field>
+        <field name="model_id" ref="model_bj_slab"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field>
+    </record>
+
+    <record id="assess_window_comp_rule" model="ir.rule">
+        <field name="name">Assess Window Rule</field>
+        <field name="model_id" ref="model_assessment_window"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field>
+    </record>
+    <record id="revenue_recovery_comp_rule" model="ir.rule">
+        <field name="name">Revenue recovery Rule</field>
+        <field name="model_id" ref="model_revenue_recovery"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field>
+    </record>
+    <record id="show_cause_comp_rule" model="ir.rule">
+        <field name="name">Show Cause Rule</field>
+        <field name="model_id" ref="model_show_cause"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field>
+    </record>
+  
+    
+    
+    </data>
+</openerp>

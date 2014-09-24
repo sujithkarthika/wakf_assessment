@@ -31,8 +31,8 @@
                 <field name="arch" type="xml">
                     <form string="Revenue Recovery Form" version="7.0">
                     	<header>
-                    	<button name="action_send" string="Send RR" type="object" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','submitted')]}"/>
-                		<button name="action_cancel" string="Cancel RR" type="object" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','send')]}"/>
+                    	<button name="action_send" string="Send RR" type="object" groups="wakf_assessment.group_assessment_send_rr" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','submitted')]}"/>
+                		<button name="action_cancel" string="Cancel RR" type="object" groups="wakf_assessment.group_assessment_cancel_rr" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','send')]}"/>
                 		<field name="state" widget="statusbar" statusbar_visible="submitted,send,execute,cancel"/>
                 		
                     	</header>
