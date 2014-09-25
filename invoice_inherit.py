@@ -59,7 +59,9 @@ class invoice_inherit(osv.osv):
                 for node in doc.xpath("//field[@string='Register Number']"):
                     doc.remove(node)
             res['arch'] = etree.tostring(doc)
-
+            
+        
+            
         if view_type == 'tree':
             partner_string = _('Wakf Name')
             if context.get('type', 'out_invoice') in ('in_invoice', 'in_refund'):
@@ -72,11 +74,24 @@ class invoice_inherit(osv.osv):
                     for node in doc.xpath("//field[@name='registration_no']"):
                         node.set('invisible', 'True')
                         doc.remove(node)
+                    for node in doc.xpath("//field[@name='amount_untaxed']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                    for node in doc.xpath("//field[@name='origin']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
                 if partner_string == 'Wakf Name':
                     for node in doc.xpath("//field[@name='appli_no']"):
                         node.set('invisible', 'True')
                         doc.remove(node)
+                    for node in doc.xpath("//field[@name='amount_untaxed']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                    for node in doc.xpath("//field[@name='origin']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
             res['arch'] = etree.tostring(doc)
+            
         return res
     
     def _amount_all(self, cr, uid, ids, name, args, context=None):
@@ -330,9 +345,6 @@ class invoice_inherit(osv.osv):
             self.pool.get('res.partner').write(cr,uid,search_ids,{'state1':'finished'},context=None)
         if is_sws and type == 'in_invoice' and head_name == "Pension":   ### Pension SWS non re-fundable
             search_ids = self.pool.get('res.partner').search(cr,uid,[('appli_no','=',application_no),('head','=',head),('state1','!=','finished')])
-            status = 'pending'
-            unlink_list = []
-            unlink_list.append((2,1))
             if not search_ids:
                 raise osv.except_osv(_('Warning!'), _('Undefined or closed transaction on Pension'))
             browse_ids = self.pool.get('res.partner').browse(cr,uid,search_ids)
@@ -341,11 +353,11 @@ class invoice_inherit(osv.osv):
                     month_test = line2.for_month
                     year_test = line2.year
                     amount1 = line2.amount
+                    date_sanction = line2.date_sanction
                     if month_test == for_month and year_test == year and amount1 == amount:
+                        id_cahnge = line2.id
                         status = 'paid'
-                    pension_list.append((0,0,{'for_month':month_test,'year':year_test,'amount':amount1,'status':status}))
-                    status = 'pending'
-                self.pool.get('res.partner').write(cr,uid,search_ids,{'history_transaction':False})
+                        pension_list.append((1,id_cahnge,{'status':'paid'}))
                 self.pool.get('res.partner').write(cr,uid,search_ids,{'history_transaction':pension_list})
             self.pool.get('res.partner').write(cr,uid,search_ids,{'state1':'revolving'})
 
@@ -353,7 +365,6 @@ class invoice_inherit(osv.osv):
         return True
         
     _columns = {
-            #'partner_id': fields.many2one('res.partner', 'Partner', change_default=True, readonly=True, required=True, states={'draft':[('readonly',False)]}, track_visibility='always'),
             'registration_no':fields.integer('Registration Number', size=16, required=False),
             'fiscal_position': fields.many2one('account.fiscal.position', 'Fiscal Position', readonly=True, states={'draft':[('readonly',False)]}),            
             'assessment_type':fields.selection((('assessment','Assessment'), ('BJ','BJ-Assessment')),'Assessment Type',required=True),   
@@ -404,6 +415,7 @@ class invoice_inherit(osv.osv):
             'year':fields.char('Year',size=16),
             'amount':fields.float('Amount'),
             'key':fields.char('Key',size=16),
+            'date_sanction':fields.date('Sanction Date')
             ########################################################### 
                 }
             
@@ -914,7 +926,7 @@ class assessment_window(osv.osv):
             journal_id = self.pool.get('account.journal').browse(cr,uid,search_ids)[0].id
             invoice_ids.append((0,0,{'product_id':income_id,'name':" Net Income",'quantity':1,'price_unit':price_unit_income,'new_amount':new_amount_income,'sws':False}))   # sws =True, 7% calculation disabled
             #invoice_ids.append((0,0,{'product_id':expense_id,'name':"Income(Processed)",'quantity':1,'price_unit':-price_unit_expense,'new_amount':-new_amount_expense,'sws':True})) # sws =True, 7% calculation disabled
-            id_create = self.pool.get('account.invoice').create(cr,uid,{'type':'out_invoice', 'journal_type': 'sale','assessment_type':'assessment','registration_no':reg_no,'assess_year_saleorder':acc_year,'account_year_saleorder':ass_year,'is_assessment':True,'appli_no':False,'account_id':account_id,'journal_id':journal_id,'partner_id':output,'invoice_line':invoice_ids,'total_income_saleorder':price_unit_income,'total_expense_saleorder':price_unit_expense})
+            id_create = self.pool.get('account.invoice').create(cr,uid,{'type':'out_invoice', 'journal_type': 'sale','assessment_type':'assessment','registration_no':reg_no,'assess_year_saleorder':acc_year,'account_year_saleorder':ass_year,'is_assessment':True,'is_sws':False,'appli_no':False,'account_id':account_id,'journal_id':journal_id,'partner_id':output,'invoice_line':invoice_ids,'total_income_saleorder':price_unit_income,'total_expense_saleorder':price_unit_expense})
         
         self.write(cr, uid, ids, {'state':'invoiced','follow_up_id':follow_list})
         return {

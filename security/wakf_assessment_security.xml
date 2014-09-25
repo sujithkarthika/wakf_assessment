@@ -77,7 +77,7 @@
 	 <field name="comment">The user will be able to cancel BJ.</field>
     </record> 
     
-    <!-- =======================================  RR Non Updates ========================================= -->
+    <!-- =======================================  RR Non Updates =========================================== -->
     
     <record id="group_assessment_submit_rr" model="res.groups">
 	 <field name="name">Can Approve RR</field> 

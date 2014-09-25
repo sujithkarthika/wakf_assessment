@@ -10,11 +10,6 @@ import time
 
 class bj_assessment(osv.osv):
     _name = 'bj.assessment'
-       
-    def open_popup(self, cr, uid, ids, context=None):
-        """Method is used to show form view in new windows"""
-        this = self.browse(cr, uid, ids, context=None)
-        return this
     
     def on_change_confirm_bj(self, cr, uid, ids, context=None):
         invoice_ids = []

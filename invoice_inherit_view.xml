@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openerp>
     <data>
+    	 
     	
-    	
-    	<record id="invoice_customer_invoice_form" model="ir.ui.view">
+    	<record id="invoice_supplier_invoice_form" model="ir.ui.view">
+		  			<field name="name">view.account.invoicee.inherited</field>
+		  			<field name="model">account.invoice</field>
+		  			<field name="inherit_id" ref="account.invoice_supplier_form" />
+		  			<field name="arch" type="xml">
+		  				<xpath expr="//form/sheet/group/group[1]" position="inside">
+		  						<field name="is_sws" invisible="1"/>
+		  						<field name="appli_no"/>
+		  						<field name="head"/>
+		  				</xpath>
+		  				<xpath expr="//form/sheet/notebook/page[@string='Invoice']/div" position="replace"/>
+		  			
+		  			</field>
+		  			</record>
+			
+			<!-- ===================================================================================================== -->
+			<!-- ===================================================================================================== -->
+			
+			<record id="invoice_customer_invoice_form" model="ir.ui.view">
   			<field name="name">view.account.invoicee.inherited</field>
   			<field name="model">account.invoice</field>
   			<field name="inherit_id" ref="account.invoice_form" />
@@ -28,7 +46,6 @@
                	 </group>
                	 <group attrs="{'invisible':[('is_assessment', '!=', True)]}"></group>
                	 </xpath>
-           
                
                <xpath expr="//form/sheet/group" position="inside">
                    <group attrs="{'invisible':[('is_assessment', '!=', True)]}">
@@ -67,6 +84,7 @@
   				</xpath>
   			</field>
   		</record>
+  		
   		<!-- #######################################  Invoice Tree Inherit ################################### -->
   		
   				<record id="invoice_customer_invoice_tree" model="ir.ui.view">
@@ -90,168 +108,6 @@
 					</xpath>
 					
 				</field>
-				</record>	  			
-  		
-  		<!-- 
-  		####################################################################################################################
-  		####################################  SUPPLIER INHERIT  ###########################################################
-  		###################################################################################################################
-  		-->
-		  		<record id="invoice_supplier_invoice_form" model="ir.ui.view">
-		  			<field name="name">view.account.invoicee.inherited</field>
-		  			<field name="model">account.invoice</field>
-		  			<field name="inherit_id" ref="account.invoice_supplier_form" />
-		  			<field name="arch" type="xml">
-		  				<xpath expr="//form/sheet/group/group[1]" position="inside">
-		  						<field name="is_sws" invisible="1"/>
-		  						<field name="appli_no"/>
-		  				</xpath>
-		  				<xpath expr="//form/sheet/notebook/page[@string='Invoice']/div" position="replace"/>
-		  			
-		  			</field>
-		  			</record>
-		  			
-  		 
-  		
-  		
-  		
-  		
-           <!--============== Invoice receipts inherit form starts (acc.voucher)=========================== -->
-            <record id="invoice_customer_invoice_form_1" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.receipts.inherited</field>
-  			<field name="model">account.voucher</field>
-  			<field name="inherit_id" ref="account_voucher.view_sale_receipt_form" />
-  			<field name="arch" type="xml">
-  				<xpath expr="//form/sheet/group/group[1]/field[@name='partner_id']" position="replace">
-  					<field name="partner_id" domain="[('customer','=',True)]" on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context)" string="Wakf Name" context="{'search_default_customer':1, 'show_address': 1}" options="{&quot;always_reload&quot;: True}"/>
-  				</xpath>
-  			</field>
-  			</record>
-           <!--============== Invoice receipts inherit form ends=========================== --> 
-	    		<!--============== Invoice receipts inherit tree starts (acc.voucher)=========================== -->
-	    		
-    		<record id="invoice_customer_invoice_form_2" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.receipts.tree.inherited</field>
-  			<field name="model">account.voucher</field>
-  			<field name="inherit_id" ref="account_voucher.view_voucher_tree" />
-  			<field name="arch" type="xml">
-  				<xpath expr="//tree/field[@name='partner_id']" position="replace">
-  					<field name="partner_id" string="Wakf Name"/>
-  				</xpath>
-  			</field>
-  			</record>
-    		<!--============== Invoice receipts inherit tree ends=========================== --> 
-    		
-    		<!--============== Invoice payments inherit form starts (acc.voucher)=========================== -->
-            <record id="invoice_customer_invoice_form_3" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.payments.inherited</field>
-  			<field name="model">account.voucher</field>
-  			<field name="inherit_id" ref="account_voucher.view_vendor_receipt_form" />
-  			<field name="arch" type="xml">
-  				<xpath expr="//form/sheet/group/group[1]/field[@name='partner_id']" position="replace">
-                    <field name="partner_id" domain="[('customer','=',True)]" required="1" on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context)" string="Wakf Name" context="{'search_default_customer': 1}"/>  				</xpath>
-  			</field>
-  			</record>
-           <!--============== Invoice payments inherit form ends=========================== --> 
-           
-           <!--============== Invoice payments filter starts (acc.voucher)=========================== -->
-            <record id="invoice_customer_invoice_filter" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.filter1.inherited</field>
-  			<field name="model">account.voucher</field>
-  			<field name="inherit_id" ref="account_voucher.view_voucher_filter_customer_pay" />
-  			<field name="arch" type="xml">
-  				<xpath expr="//filter[@string='Customer']" position="replace">
-                    <filter string="Wakf Name" icon="terp-personal" domain="[]" context="{'group_by':'partner_id'}"/>
-  				</xpath>
-  			</field>
-  			</record>
-           <!--============== Invoice payments inherit filter ends=========================== --> 
-           <!--============== Invoice payments filter vendor pay starts (acc.voucher)=========================== -->
-            <record id="invoice_customer_invoice_filter_2" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.filter2.inherited</field>
-  			<field name="model">account.voucher</field>
-  			<field name="inherit_id" ref="account_voucher.view_voucher_filter_sale" />
-  			<field name="arch" type="xml">
-  				<xpath expr="//filter[@string='Customer']" position="replace">
-                    <filter string="Customer" icon="terp-personal" domain="[]" context="{'group_by':'partner_id'}"/>
-  				</xpath>
-  			</field>
-  			</record>
-           <!--============== Invoice payments inherit filter vendor pay ends=========================== --> 
-           <!--============== Invoice payments filter vendor pay starts (acc.voucher)=========================== -->
-            <record id="invoice_account_invoice_filter_1" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.filter11.inherited</field>
-  			<field name="model">account.invoice</field>
-  			<field name="inherit_id" ref="account_report_company.account_report_company_search_view" />
-  			<field name="arch" type="xml">
-  				<xpath expr="//filter[@name='commercial_partner_id']" position="replace">
-                    <filter name="commercial_partner_id" string="Wakf Name" domain="[]" context="{'group_by':'commercial_partner_id'}"/>
-  				</xpath>
-  			</field>
-  			</record>
-           <!--============== Invoice payments inherit filter vendor pay ends=========================== --> 
-           <!--============== Invoice payments filter report vendor2 pay starts (acc.voucher)=========================== -->
-            <record id="invoice_account_invoice_report_filter_1" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.filter12.inherited</field>
-  			<field name="model">account.invoice.report</field>
-  			<field name="inherit_id" ref="account_report_company.account_report_company_invoice_report_search_view" />
-  			<field name="arch" type="xml">
-  				<xpath expr="//filter[@string='Partner']" position="replace">
-                    <filter string="Wakf Name" name="commercial_partner_id" context="{'group_by':'commercial_partner_id','residual_visible':True}"/>
-  				</xpath>
-  			</field>
-  			</record>
-           <!--============== Invoice payments inherit report filter vendor2 pay ends=========================== --> 
-           
-           <!--============== Invoice filter report vendor2 pay starts (acc.voucher)=========================== -->
-            <record id="invoice_account_invoice_report_filter_3" model="ir.ui.view">
-  			<field name="name">view.account.invoicee.filter13.inherited</field>
-  			<field name="model">account.invoice.report</field>
-  			<field name="inherit_id" ref="account.view_account_invoice_report_search" />
-  			<field name="arch" type="xml">
-  				<xpath expr="//filter[@icon='terp-personal']" position="replace">
-                     <filter icon="terp-personal" string="Wakf Name" name="customer" domain="['|', ('type','=','out_invoice'),('type','=','out_refund')]" help="Wakf Invoices And Refunds"/>
-  				</xpath>
-  				<xpath expr="//filter[@string='Supplier']" position="replace"/>
-  			 	<xpath expr="//filter[@string='Partner']" position="replace">
-                     <filter string="Partner" name="partner" icon="terp-partner" context="{'group_by':'partner_id','residual_visible':True}"/>
-  				</xpath>
-  				<xpath expr="//filter[@string='Salesperson']" position="replace">
-                     <filter string="Assessemnt Officer" name="user" icon="terp-personal" context="{'group_by':'user_id'}"/>
-  				</xpath>
-  				<xpath expr="//filter[@string='Product']" position="replace">
-                      <filter string="Assessment Property" icon="terp-accessories-archiver" context="{'group_by':'product_id','set_visible':True,'residual_invisible':True}"/>
-  				</xpath>
-  				<xpath expr="//filter[@string='Category of Product']" position="replace"/>
-  			</field>
-  			</record>
-           <!--============== Invoice filter inherit report filter vendor2 pay ends=========================== --> 
-           
-           <!-- ========================  Invoice filter to reg no default search ============== -->
-			 
-			<record id="view_invoice_default_inherited_2" model="ir.ui.view">
-  			<field name="name">view.account.invoice.default.inherited</field>
-  			<field name="model">account.invoice</field>
-  			<field name="inherit_id" ref="account.view_account_invoice_filter" />
-  			<field name="arch" type="xml">	
-  				<xpath expr="//search[@string='Search Invoice']/field[@name='number']" position="replace">
-  					<field name="registration_no" string="Register Number" filter_domain="[(('registration_no','=',self))]"/>
-  					<field name="appli_no" string="Application Number" filter_domain="[(('appli_no','=',self))]"/>
-  				</xpath>
-  			</field>
-  			</record>
-  			
-  			<!-- =============================== Account Voucher Inherit ========================= -->
-  			
-  			<record id="invoice_voucher_invoice_form" model="ir.ui.view">
-		  			<field name="name">view.account.voucher23.inherited</field>
-		  			<field name="model">account.voucher</field>
-		  			<field name="inherit_id" ref="account_voucher.view_vendor_receipt_form" />
-		  			<field name="arch" type="xml">
-		  				  <xpath expr="//form/sheet/group/group[1]/field[@name='partner_id']" position="before">
-		  				  		<field name="registration_no" on_change="on_change_wakf_regno_to_name(registration_no)"/>
-		  				  </xpath>
-		  			</field>
-		  	</record>
+				</record>
     </data>
 </openerp>
