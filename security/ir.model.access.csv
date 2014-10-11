@@ -21,3 +21,4 @@ wakf_assesment,wakf.assesment,model_wakf_assesment,group_assessment_invoice,1,1,
 wakf_assesment_income,wakf.assesment.income,model_wakf_assesment_income,group_assessment_invoice,1,1,1,1
 wakf_assesment_expense,wakf.assesment.expense,model_wakf_assesment_expense,group_assessment_invoice,1,1,1,1
 product_product,product.product.product,product.model_product_product,group_assessment_submit,1,1,1,1
+res_partner,base.res.partner,base.model_res_partner,group_assessment_submit,1,1,1,1

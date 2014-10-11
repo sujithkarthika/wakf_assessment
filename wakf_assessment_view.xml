@@ -127,6 +127,7 @@
 			<menuitem id="bj_slab_menu" name="BJ Slab settings" parent="bj_sub_head" sequence="4" action="action_bj_slab_tree_view"/>
 			<menuitem id="revenue_recovery_menu" name="Revenue Recovery" parent="bj_sub_head" sequence="3" action="action_revenue_recovery_tree_view"/>
 			
+			<menuitem id="arrear_list_menu" name="Arrear List" parent="assessment_sub_head" sequence="2" action="action_arrear_list_form_view"/>
 			
     </data>
 </openerp>

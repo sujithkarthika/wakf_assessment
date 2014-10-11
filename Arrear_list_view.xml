@@ -10,9 +10,7 @@
                 <field name="arch" type="xml">
                     <tree string="Arrear List" version="7.0">
                         <field name="reg_no"/>
-                        <field name="wakf_id"/>
-                        
-                        <field name="account_year"/>
+                        <field name="wakf_id"/>       
                         <field name="assessment_year"/>
                     </tree>
                 
@@ -35,7 +33,7 @@
                                 		<label for="reg_no" string="Registration Number"/>
                                 	</div>
                            		 	<h1>                          
-                                		<field name="reg_no" on_change="on_change_wakf_reg_no_to_arrear(reg_no)"/>
+                                		<field name="reg_no" on_change="on_change_wakf_reg_no_to_arrear(reg_no,all_wakf)"/>
                             		</h1>
                         		</div>
                         	</group>
@@ -46,13 +44,9 @@
                         	</group>
                         	<group>
                         		<field name="assessment_year"/>                        		
-                        		<!-- <field name="account_year1"/>
-                        		<field name="account_year2"/>-->
+                        	
                        	    </group>
-                          <!--	<group>
-                        		<field name="net_income"/>
-                        		<field name="contri_amount"/>
-                        	</group> -->
+                      
                         </group>
                         <notebook colspan="4">
                         	<page string="Arrear List">
@@ -61,17 +55,15 @@
 							 	 		<field name="reg_no"/>
 										<field name="account_year_line"/>
 										<field name="assessment_year_line"/>
-										<field name="assess_amount"/>									
-										
-										<field name="contri_amount1"/>
+										<field name="assess_amount" sum="Total Amount"/>									
+										<field name="currently_on"/>
 									</tree>
 								</field>
 								<group></group>
 					       		<group></group>	
 									<group class="oe_subtotal_footer oe_right">
-										<field name="net_income_assess"/>
-										<field name="contri_amount" class="oe_subtotal_footer_separator" widget="monetary"/>
-									    <!-- <button name="button_reset_taxes" string="(update)" type="object" class="oe_edit_only oe_link"/> -->
+										<!--<field name="contri_amount"/>
+									     <button name="button_reset_taxes" string="(update)" type="object" class="oe_edit_only oe_link"/> -->
 									</group>
 								<group></group>					        	
 							</page>
@@ -82,36 +74,16 @@
                 </field>
             </record>
             
-            <record id="arrear_list_window_search_view" model="ir.ui.view">
-            <field name="name">Arrear List Search</field>
-            <field name="model">arrear.list</field>
-            <field name="arch" type="xml">
-                <search string="Search">
-                <field name="reg_no" string="Registration No" filter_domain="[(('reg_no','=',self))]"/>
-                <separator/>
-                <filter string="Approved BJ" name="open" domain="[('state','=','approved')]" help="Approved BJ"/>
-                <filter string="Send BJ" name="open" domain="[('state','=','send')]" help="Send BJ"/>
-                <filter string="Moved to Re-Assessment" name="open" domain="[('state','=','re-assessment')]" help="Re assessed BJ"/>
-                <filter string="Cancelled" name="open" domain="[('state','=','cancelled')]" help="Cancelled BJ"/>
-                
-                 <group expand="0" string="Group By...">
-              		<filter string="Register Number" domain="[]" context="{'group_by':'reg_no'}"/>
-              		<filter string="Account Year" domain="[]" context="{'group_by':'account_year'}"/>
-              		<filter string="Assessment Year" domain="[]" context="{'group_by':'assessment_year'}"/>
-              		<filter string="BJ Creation Date" domain="[]" context="{'group_by':'ass_date'}"/>
-                 </group>
-  				 </search>
-            </field>
-        </record>
+           
 
-            <record model="ir.actions.act_window" id="action_arrear_list_tree_view">
+            <record model="ir.actions.act_window" id="action_arrear_list_form_view">
                 <field name="name">Arrear List</field>
                 <field name="type">ir.actions.act_window</field>
                 <field name="res_model">arrear.list</field>
 		   <!-- <field name="domain">[('field_name','condition',criteria)]</field>-->
                 <field name="view_type">form</field>
                 <field name="view_mode">tree,form</field>
-                <field name="view_id" ref="arrear_list_tree_view"/>
+                <field name="view_id" ref="arrear_list_form_view"/>
             </record>
 
             

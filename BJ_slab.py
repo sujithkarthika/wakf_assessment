@@ -4,6 +4,7 @@ from tools.translate import _
 
 class bj_slab(osv.osv):
     _name = 'bj.slab'
+    _order = "id desc"
     _columns = {
             'name':fields.char('Ordo'),
             'order_no':fields.char('Order No'),

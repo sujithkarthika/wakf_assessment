@@ -6,6 +6,7 @@ class Show_Cause(osv.osv):
  
     _name = 'show.cause'
     _description = 'show.cause'
+    _order = "id desc"
     
     def action_send(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids, {'state':'send'})

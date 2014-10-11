@@ -38,7 +38,7 @@
                                 		<label for="reg_no" string="Registration Number"/>
                                 	</div>
                            		 	<h1>                          
-                                		<field name="reg_no" on_change="on_change_wakf_regno_to_name_new_assess(reg_no)"/>
+                                		<field name="reg_no" on_change="on_change_wakf_regno_to_name_new_assess(reg_no,all_wakf)"/>
                             		</h1>
                         		</div>
                         	</group>
@@ -81,7 +81,7 @@
 										<field name="net_income"/>
 										<field name="net_income_assess"/>
 										<field name="contri_amount" class="oe_subtotal_footer_separator" widget="monetary"/>
-									    <button name="open_popup" string="(update..)" type="object" class="oe_edit_only oe_link"/>
+									    <button name="refresh_amount" string="(update..)" type="object" class="oe_edit_only oe_link"/>
 									    
 									</group>
 								<group></group>					        	

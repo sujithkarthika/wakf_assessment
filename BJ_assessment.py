@@ -8,7 +8,7 @@ from tools.translate import _
 
 class bj_assessment_window(osv.osv):
     _name = 'bj.assessment.window'
-    
+    _order = "id desc"
     def on_change_confirm_bj(self, cr, uid, ids, context=None):
         invoice_ids = []
         for key in self.browse(cr,uid,ids,context=context):
@@ -64,18 +64,20 @@ class bj_assessment_window(osv.osv):
             res[order.id]['contri_amount']=val1          
         return res
     def _deflt_ass_year(self, cr, uid, ids, context=None):
-        res ={}
         today = date.today()
         month_of = today.month
         if month_of <= 3:
             date_of = '%d-%d'%(today.year-1,today.year)
         if month_of >= 4:
             date_of = '%d-%d'%(today.year,today.year+1)
-        search_condition = [('name', '=', date_of)]
+        company_id = self.pool['res.company']._company_default_get(cr,uid,object='case.registration'),
+        search_condition = [('name', '=', date_of),('company_id','=',company_id)]
         search_ids = self.pool.get('account.fiscalyear').search(cr, uid, search_condition, context=context)
         if search_ids:
             similar_objs = self.pool.get('account.fiscalyear').browse(cr, uid, search_ids, context=context)
+        if similar_objs:
             return similar_objs[0].id
+        return False
    
     def action_approve(self, cr, uid, ids, context=None):
         follow_list = []
@@ -145,6 +147,8 @@ class bj_assessment_window(osv.osv):
     def action_rr(self, cr, uid, ids, context=None):
         follow_list = []
         dicto = {}
+        browse_invoice_draft = 0
+        browse_invoice_open = 0
         for rec in self.browse(cr, uid, ids, context=context):
             dicto = {'name':"Send RR",'who':uid,'when':time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)}
             follow_list.append((0,0,dicto))
@@ -152,14 +156,25 @@ class bj_assessment_window(osv.osv):
             output = rec.wakf_id.id or False
             acc_year = rec.account_year.id or False
             ass_year = rec.assessment_year.id or False
-            search_invoice = self.pool.get('account.invoice').search(cr,uid,[('partner_id','=',output),('assess_year_saleorder','=',acc_year),('account_year_saleorder','=',ass_year),('is_assessment','=',True),('appli_no','=',False),('assessment_type','=','bj'),('state','=','draft')])
-            if search_invoice:
-                list_unlink = [ invoice.id for invoice in self.pool.get('account.invoice').browse(cr,uid,search_invoice)]
+            #############################################
+            search_invoice_draft = self.pool.get('account.invoice').search(cr,uid,[('partner_id','=',output),('assess_year_saleorder','=',acc_year),('account_year_saleorder','=',ass_year),('is_assessment','=',True),('appli_no','=',False),('assessment_type','=','bj'),('state','=','draft')])
+            search_invoice_open = self.pool.get('account.invoice').search(cr,uid,[('partner_id','=',output),('assess_year_saleorder','=',acc_year),('account_year_saleorder','=',ass_year),('is_assessment','=',True),('appli_no','=',False),('assessment_type','=','bj'),('state','=','open')])
+            search_invoice_paid = self.pool.get('account.invoice').search(cr,uid,[('partner_id','=',output),('assess_year_saleorder','=',acc_year),('account_year_saleorder','=',ass_year),('is_assessment','=',True),('appli_no','=',False),('assessment_type','=','bj'),('state','=','paid')])
+            if search_invoice_draft:
+                browse_invoice_draft = self.pool.get('account.invoice').browse(cr, uid, search_invoice_draft)
+            if search_invoice_open:
+                browse_invoice_open = self.pool.get('account.invoice').browse(cr, uid, search_invoice_open)
+            if browse_invoice_open:
+                self.pool.get('account.invoice').action_cancel(cr,uid,[browse_invoice_open[0].id],context=context)
+            if browse_invoice_draft:
+                list_unlink = [ invoice.id for invoice in self.pool.get('account.invoice').browse(cr,uid,search_invoice_draft)]
                 self.pool.get('account.invoice').unlink(cr,uid,list_unlink,context=context)
-                self.write(cr, uid, ids, {'state':'rr','follow_line_id':follow_list})
+            self.write(cr, uid, ids, {'state':'rr','follow_line_id':follow_list})
+            
+            ##############################################################################################
             ##########################################  RR Created  ##########################################
-                id_create = self.pool.get('revenue.recovery').create(cr,uid,{'from_a':'bj','reg_no':reg_no,'partner_id':output,'assess_year':ass_year,'account_year':acc_year})
-                return {
+            id_create = self.pool.get('revenue.recovery').create(cr,uid,{'from_a':'bj','reg_no':reg_no,'partner_id':output,'assess_year':ass_year,'account_year':acc_year})
+            return {
                     'type': 'ir.actions.act_window',
                     'name': "Revenue Recovery form",
                     'view_type': 'form',
@@ -170,8 +185,6 @@ class bj_assessment_window(osv.osv):
                     'res_model': 'revenue.recovery',
                     'target': 'new',
                     'nodestroy': True,}
-            else:
-                raise osv.except_osv(_('Cannot Process!'), _('BJ Invoice moved to "post" or "paid" state. First Cancel Invoice'))
         return True
     
     def showcause(self, cr, uid, ids, context=None):

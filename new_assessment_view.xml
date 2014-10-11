@@ -62,7 +62,7 @@
                                 <label for="name" string="Account Year"/>
                             </div>
                             <h1>
-                                <field name="acc_year" on_change="on_change_acc_year_to_munbaki(name,acc_year)" placeholder="eg:2014"/>
+                                <field name="acc_year" on_change="on_change_acc_year_to_munbaki(name,acc_year)"/>
                             </h1>
                           
                         </div>
@@ -70,9 +70,9 @@
                    		<group>
                          <group>
                          	<field name="revised"/>
-                         	<field name="appeal_no" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','not in',['submitted','sent_notice'])],'required':[('revised','=',True),('state','in',['submitted','sent_notice'])]}"/>
-                         	<field name="appeal_details" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','not in',['submitted','sent_notice'])],'required':[('revised','=',True),('state','in',['submitted','sent_notice'])]}"/>
-                         	<field name="appeal_date" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','not in',['submitted','sent_notice'])],'required':[('revised','=',True),('state','in',['submitted','sent_notice'])]}"/>
+                         	<field name="appeal_no" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','in',['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'])],'required':[('state','in',['submitted']),('revised','=',True)]}"/>
+                         	<field name="appeal_details" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','in',['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'])],'required':[('state','in',['submitted']),('revised','=',True)]}"/>
+                         	<field name="appeal_date" attrs="{'invisible':[('revised','!=',True)],'readonly':[('state','in',['submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'])],'required':[('state','in',['submitted']),('revised','=',True)]}"/>
                         	<field name="wakf_id"/>
                         	<field name="district"/>
                         	<field name="taluk"/>
@@ -113,8 +113,11 @@
 								
 			
 							</field> 
-							
-					       	 
+							<group>
+							<field name="kaivasam"/>
+							<field name="bank"/>
+							<field name="dhanyam"/>
+					       	</group> 
 					                               
                         </page>
     <!-- ==================================  COPY INCOME ========================================= -->
@@ -133,18 +136,12 @@
 							<group class="oe_subtotal_footer oe_right">							 
 					  			<field name="amount_total1" class="oe_subtotal_footer_separator" widget="monetary"/>
 					        </group>
-					        <!--  
-					        <group class="oe_subtotal_footer oe_left" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}">
-	                        	<field name="grand_income"/>
-	                        	<field name="exempted"/>
-	                        	<field name="munbaki"/>
-	                        	<field name="deducted"/>
-	                        	<field name="net_income" class="oe_subtotal_footer_separator" widget="monetary"/>
-	                        	<field name="contribution_amount"/>
-	                        
-                            </group>
-					       	<group>
-					       	</group>  -->                            
+					        <group>
+							<field name="kaivasam"/>
+							<field name="bank"/>
+							<field name="dhanyam"/>
+					       	</group> 
+					                                
                         </page>
     <!-- =================================  COPY INCOME CLOSE ============================================= -->
                         
@@ -167,14 +164,7 @@
 							 
 								<field name="amount_total2" class="oe_subtotal_footer_separator" widget="monetary"/>
 					        </group>
-				<!--  	        <group class="oe_subtotal_footer oe_left" attrs="{'invisible':['|',('state','not in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}">
-	                        	<field name="total_income"/>
-	                        	<field name="exempted"/>
-	                        	<field name="total_income_final" class="oe_subtotal_footer_separator" widget="monetary"/>
-	                        	<field name="total_expense"/>
-	                        	<field name="deducted"/>
-	                        	<field name="total_expense_final" class="oe_subtotal_footer_separator" widget="monetary"/>
-                            </group>-->
+			
 					       	<group>
 					       	</group>
 								

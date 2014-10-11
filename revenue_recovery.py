@@ -11,7 +11,7 @@ from tools import  DEFAULT_SERVER_DATETIME_FORMAT
 class Revenue_Recovery(osv.osv):
     
     _name = 'revenue.recovery'
-    
+    _order = "id desc"
  
     def action_send(self, cr, uid, ids, context=None):
         follow_list = []
@@ -61,6 +61,8 @@ class Revenue_Recovery(osv.osv):
     def action_cancel(self, cr, uid, ids, context=None):
         follow_list = []
         dicto = {}
+        browse_invoice_open = 0
+        browse_invoice_draft = 0
         for rec in self.browse(cr, uid, ids, context=context):
             dicto = {'name':"RR Cancelled",'who':uid,'when':time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)}
             follow_list.append((0,0,dicto))
@@ -71,11 +73,19 @@ class Revenue_Recovery(osv.osv):
             output = rec.partner_id.id
             from_a = rec.from_a
             ##############################################################################################
-            search_invoice = self.pool.get('account.invoice').search(cr,uid,[('registration_no','=',reg_no),('partner_id','=',output),('account_year_saleorder','=',ass_year),('assessment_type','=','rr'),('state','=','draft')])
-            if not search_invoice:
-                raise osv.except_osv(_('Cannot Process!'), _('Invoice moved to "post" or "paid" state'))
-            list_unlink = [ invoice.id for invoice in self.pool.get('account.invoice').browse(cr,uid,search_invoice)]
-            self.pool.get('account.invoice').unlink(cr,uid,list_unlink,context=context)
+            search_invoice_draft = self.pool.get('account.invoice').search(cr,uid,[('registration_no','=',reg_no),('partner_id','=',output),('account_year_saleorder','=',ass_year),('assessment_type','=','rr'),('state','=','draft')])
+            search_invoice_open = self.pool.get('account.invoice').search(cr,uid,[('registration_no','=',reg_no),('partner_id','=',output),('account_year_saleorder','=',ass_year),('assessment_type','=','rr'),('state','=','open')])
+            if search_invoice_draft:
+                browse_invoice_draft = self.pool.get('account.invoice').browse(cr, uid, search_invoice_draft)
+            if search_invoice_open:
+                browse_invoice_open = self.pool.get('account.invoice').browse(cr, uid, search_invoice_open)
+            if browse_invoice_open:
+                self.pool.get('account.invoice').action_cancel(cr,uid,[browse_invoice_open[0].id],context=context)
+                #self.write(cr, uid, ids, {'state':'RR','follow_up_id':follow_list})
+            if browse_invoice_draft:
+                list_unlink = [ invoice.id for invoice in self.pool.get('account.invoice').browse(cr,uid,search_invoice_draft)]
+                self.pool.get('account.invoice').unlink(cr,uid,list_unlink,context=context)
+            
             ###############################################################################################
             if from_a == 'assessment':
                 search_ids = self.pool.get('assessment.window').search(cr,uid,[('name','=',reg_no),('wakf_id','=',output),('assess_year','=',ass_year),('acc_year','=',acc_year)])
@@ -86,6 +96,7 @@ class Revenue_Recovery(osv.osv):
                 search_ids = self.pool.get('bj.assessment.window').search(cr,uid,[('reg_no','=',reg_no),('wakf_id','=',output),('assessment_year','=',ass_year),('account_year','=',acc_year)])
                 if search_ids:
                     self.pool.get('bj.assessment.window').write(cr,uid,search_ids,{'state':'send'},context=None)
+            ##############################################################################
             self.write(cr, uid, ids, {'state':'cancel','follow_up_id':follow_list})
         return True
     
