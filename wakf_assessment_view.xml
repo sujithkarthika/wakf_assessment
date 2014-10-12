@@ -105,13 +105,14 @@
 
            
        <!-- ======================================  Main Menus ======================================= --> 
-			<menuitem id="assessment_main_menu" name="Assessment" parent="" />
-			<menuitem id="bj_main_menu" name="BJ-Assessment" parent="" />
+			<menuitem id="assessment_main_menu" name="Assessment" parent="" groups="wakf_assessment.group_assessment_submit"/>
+			<menuitem id="bj_main_menu" name="BJ-Assessment" parent="" groups="wakf_assessment.group_assessment_submit_bj"/>
 	   <!-- ======================================  Main Menus ======================================= -->
 		
 	   <!-- ======================================  Sub Menus ======================================= -->		
 			
 			<menuitem id="assessment_sub_head" name="Assessment" parent="assessment_main_menu" />
+			<menuitem id="assessment_properties" name="Assessment Properties" parent="assessment_main_menu" />
 			<menuitem id="bj_sub_head" name="BJ-Assessment" parent="bj_main_menu" />
 	   <!-- ======================================  Sub Menus ======================================= -->
 	   
@@ -129,5 +130,9 @@
 			
 			<menuitem id="arrear_list_menu" name="Arrear List" parent="assessment_sub_head" sequence="2" action="action_arrear_list_form_view"/>
 			
+	  <!-- ====================================== Product Menu to Assessment Window ======================================= -->
+			<menuitem id="product_normal_action" name="Properties" parent="assessment_properties"/>
+		<!--	<menuitem id="product_category_action" name="Properties Category" parent="assessment_properties"/> -->
+			<menuitem id="base.menu_product" name="Properties" parent="assessment_properties" sequence="9"/>
     </data>
 </openerp>

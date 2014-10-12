@@ -204,6 +204,21 @@ class bj_assessment_window(osv.osv):
             self.pool.get('show.cause').create(cr,uid,{'reg_no':reg_no,'assessment_year':assessment_year,'acc_year_from':acc_year_1,'partner_id':output,'acc_year_to':acc_year,'amount':amount})
             self.write(cr, uid, ids, {'state':'showcause'})
         return False
+    
+    ##################################################################################################
+    #                                    CANNOT DELETE BJ ASSESSMENT RECORDS                         #
+    #                                                TESTED
+    ##################################################################################################
+    
+    #def unlink(self, cr, uid, ids, context=None):
+    #    if context is None:
+    #        context = {}
+    #    """Allows to delete assessment lines in other states"""
+    #    for rec in self.browse(cr, uid, ids, context=context):
+    #        if rec.state not in ['draft']:
+    #            raise osv.except_osv(_('Invalid Action!'), _('Cannot delete an Assessment Record which is in state \'%s\'.') %(rec.state,))
+    #    return super(bj_assessment_window, self).unlink(cr, uid, ids, context=context)
+    
 
     
     _columns = {

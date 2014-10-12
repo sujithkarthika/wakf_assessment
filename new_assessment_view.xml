@@ -6,7 +6,7 @@
                 <field name="model">assessment.window</field>
                 <field name="type">tree</field>
                 <field name="arch" type="xml">
-                    <tree string="Assessment Tree" version="7.0">
+                    <tree string="Assessment Tree" version="7.0" colors="red:state in ('re-assess','appeal');blue:state in ('submitted','invoiced');black:state in ('RR','showcause');green:state == 'sent_notice'">
                         <field name="name"/>
                         <field name="wakf_id"/>
                         <field name="district"/>
@@ -26,13 +26,13 @@
                 <field name="type">form</field>
                 <field name="arch" type="xml">
                 
-                    <form string="Assessment Form" version="7.0">
+                    <form string="Assessment Form" version="7.0" >
                     <header>
                     	<button name="action_submit" string="Submit" type="object" groups="wakf_assessment.group_assessment_submit" attrs="{'invisible':['|',('state','in',('submitted','sent_notice','invoiced','showcause','RR','appeal','re-assess','completed'))]}"/>
                     	<button name="action_sent_notice" string="Sent Notice" type="object" groups="wakf_assessment.group_assessment_invoice" icon="gtk-go-forward" attrs="{'invisible':[('state','!=','submitted')]}"/>
                 		<button name="action_invoice" string="Invoice" type="object" groups="wakf_assessment.group_assessment_invoice" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('sent_notice'))]}"/>
                 		<button name="action_showcause" string="Sent ShowCause" type="object" groups="wakf_assessment.group_assessment_showcause" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','invoiced')]}"/>
-                		<button name="action_appeal" string="Appeal Received" type="object" groups="wakf_assessment.group_assessment_appeal_reassess" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('invoiced','showcause'))]}"/>
+                		<button name="action_appeal" string="Review Request" type="object" groups="wakf_assessment.group_assessment_appeal_reassess" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('invoiced','showcause'))]}"/>
                 		<button name="action_RR" string="Send RR" type="object" groups="wakf_assessment.group_assessment_RR" icon="gtk-goto-last" attrs="{'invisible':[('state','not in',('showcause','appeal','invoiced'))]}"/>
                 		<button name="action_re_assess" string="Re-assessment" type="object" groups="wakf_assessment.group_assessment_appeal_reassess" icon="gtk-goto-last" attrs="{'invisible':[('state','!=','appeal')]}"/>
                 		<field name="state" widget="statusbar" statusbar_visible="submitted,sent_notice,invoiced,showcause,RR,appeal,re-assess,completed"
@@ -401,6 +401,15 @@
   				<xpath expr="//search[@string='Search Invoice']/field[@name='number']" position="replace">
   					<field name="registration_no" string="Register Number" filter_domain="[(('registration_no','=',self))]"/>
   					<field name="appli_no" string="Application Number" filter_domain="[(('appli_no','=',self))]"/>
+  					<field name="assess_year_saleorder" string="Account Year" filter_domain="[(('assess_year_saleorder','=',self))]"/>
+		  			<field name="account_year_saleorder" string="Assessment Year" filter_domain="[(('account_year_saleorder','=',self))]"/>
+  				</xpath>
+  				<xpath expr="//search[@string='Search Invoice']/group[@string='Group By...']" position="inside">
+  					<filter string="Account Year" icon="terp-partner" domain="[]" context="{'group_by':'assess_year_saleorder'}"/>
+  					<filter string="Assessment Year" icon="terp-partner" domain="[]" context="{'group_by':'account_year_saleorder'}"/>
+  					<filter string="Assessment Type" icon="terp-partner" domain="[]" context="{'group_by':'assessment_type'}"/>
+  					<filter string="Invoice Date" icon="terp-partner" domain="[]" context="{'group_by':'date_invoice'}"/>
+  					<filter string="Account" icon="terp-partner" domain="[]" context="{'group_by':'account_id'}"/>
   				</xpath>
   			</field>
   			</record>

@@ -24,6 +24,21 @@ class Show_Cause(osv.osv):
         else:
             raise osv.except_osv(_('Warning!'), _('Assessment state changed. Cannot process'))
         return True
+    
+    ##################################################################################################
+    #                                    CANNOT DELETE SHOWCAUSE RECORDS                            #
+    #                                                TESTED
+    ##################################################################################################
+    
+    #def unlink(self, cr, uid, ids, context=None):
+    #    if context is None:
+    #        context = {}
+    #    """Allows to delete assessment lines in other states"""
+    #    for rec in self.browse(cr, uid, ids, context=context):
+    #        if rec.state not in ['submitted']:
+    #            raise osv.except_osv(_('Invalid Action!'), _('Cannot delete an Assessment Record which is in state \'%s\'.') %(rec.state,))
+    #    return super(Show_Cause, self).unlink(cr, uid, ids, context=context)
+    
  
     _columns = {
             'reg_no':fields.integer('Registration Number:', size=64, required=False),

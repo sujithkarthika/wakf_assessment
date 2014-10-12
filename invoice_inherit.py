@@ -14,85 +14,88 @@ class invoice_inherit(osv.osv):
     _inherit = 'account.invoice'
     ########################################## UPDATES ###############################################
     ###################################################################################################
- #   def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
- #       journal_obj = self.pool.get('account.journal')
- #       if context is None:
- #           context = {}
- #
- #       if context.get('active_model', '') in ['res.partner'] and context.get('active_ids', False) and context['active_ids']:
- #           partner = self.pool.get(context['active_model']).read(cr, uid, context['active_ids'], ['supplier','customer'])[0]
- #           if not view_type:
- #               view_id = self.pool.get('ir.ui.view').search(cr, uid, [('name', '=', 'account.invoice.tree')])
- #               view_type = 'tree'
- #           if view_type == 'form':
- #               if partner['supplier'] and not partner['customer']:
- #                   view_id = self.pool.get('ir.ui.view').search(cr,uid,[('name', '=', 'account.invoice.supplier.form')])
- #               elif partner['customer'] and not partner['supplier']:
- #                   view_id = self.pool.get('ir.ui.view').search(cr,uid,[('name', '=', 'account.invoice.form')])
- #       if view_id and isinstance(view_id, (list, tuple)):
- #           view_id = view_id[0]
- #       res = super(invoice_inherit,self).fields_view_get(cr, uid, view_id=view_id, view_type=view_type, context=context, toolbar=toolbar, submenu=submenu)
- #
- #       type = context.get('journal_type', False)
- #       for field in res['fields']:
- #           if field == 'journal_id' and type:
- #               journal_select = journal_obj._name_search(cr, uid, '', [('type', '=', type)], context=context, limit=None, name_get_uid=1)
- #               res['fields'][field]['selection'] = journal_select
- #
- #       doc = etree.XML(res['arch'])
-#
-#        if context.get('type', False):
-#            for node in doc.xpath("//field[@name='partner_bank_id']"):
-#                if context['type'] == 'in_refund':
-#                    node.set('domain', "[('partner_id.ref_companies', 'in', [company_id])]")
-#                elif context['type'] == 'out_refund':
-#                    node.set('domain', "[('partner_id', '=', partner_id)]")
-#            res['arch'] = etree.tostring(doc)
-#
-#        if view_type == 'search':
-#            if context.get('type', 'in_invoice') in ('out_invoice', 'out_refund'):
-#                for node in doc.xpath("//group[@name='extended filter']"):
-#                    doc.remove(node)
-#                for node in doc.xpath("//field[@string='Application Number']"):
-#                    doc.remove(node)
-#            if context.get('type', 'out_invoice') in ('in_invoice', 'in_refund'):
-#                for node in doc.xpath("//field[@string='Register Number']"):
-#                    doc.remove(node)
-#            res['arch'] = etree.tostring(doc)
-#            
-        
+    def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
+        journal_obj = self.pool.get('account.journal')
+        if context is None:
+            context = {}
+ 
+        if context.get('active_model', '') in ['res.partner'] and context.get('active_ids', False) and context['active_ids']:
+            partner = self.pool.get(context['active_model']).read(cr, uid, context['active_ids'], ['supplier','customer'])[0]
+            if not view_type:
+                view_id = self.pool.get('ir.ui.view').search(cr, uid, [('name', '=', 'account.invoice.tree')])
+                view_type = 'tree'
+            if view_type == 'form':
+                if partner['supplier'] and not partner['customer']:
+                    view_id = self.pool.get('ir.ui.view').search(cr,uid,[('name', '=', 'account.invoice.supplier.form')])
+                elif partner['customer'] and not partner['supplier']:
+                    view_id = self.pool.get('ir.ui.view').search(cr,uid,[('name', '=', 'account.invoice.form')])
+        if view_id and isinstance(view_id, (list, tuple)):
+            view_id = view_id[0]
+        res = super(invoice_inherit,self).fields_view_get(cr, uid, view_id=view_id, view_type=view_type, context=context, toolbar=toolbar, submenu=submenu)
+ 
+        type = context.get('journal_type', False)
+        for field in res['fields']:
+            if field == 'journal_id' and type:
+                journal_select = journal_obj._name_search(cr, uid, '', [('type', '=', type)], context=context, limit=None, name_get_uid=1)
+                res['fields'][field]['selection'] = journal_select
+ 
+        doc = etree.XML(res['arch'])
+        if context.get('type', False):
+            for node in doc.xpath("//field[@name='partner_bank_id']"):
+                if context['type'] == 'in_refund':
+                    node.set('domain', "[('partner_id.ref_companies', 'in', [company_id])]")
+                elif context['type'] == 'out_refund':
+                    node.set('domain', "[('partner_id', '=', partner_id)]")
+            res['arch'] = etree.tostring(doc)
+
+        if view_type == 'search':
+            if context.get('type', 'in_invoice') in ('out_invoice', 'out_refund'):
+                for node in doc.xpath("//group[@name='extended filter']"):
+                    doc.remove(node)
+                for node in doc.xpath("//field[@string='Application Number']"):
+                    doc.remove(node)
+            if context.get('type', 'out_invoice') in ('in_invoice', 'in_refund'):
+                for node in doc.xpath("//field[@string='Register Number']"):
+                    doc.remove(node)
+            res['arch'] = etree.tostring(doc)
             
- #       if view_type == 'tree':
- #           partner_string = _('Wakf Name')
- #           if context.get('type', 'out_invoice') in ('in_invoice', 'in_refund'):
- #               partner_string = _('Applicant Name')
- #               for node in doc.xpath("//field[@name='reference']"):
- #                   node.set('invisible', '0')
- #           for node in doc.xpath("//field[@name='partner_id']"):
- #               node.set('string', partner_string)
- #               if partner_string == 'Applicant Name':
- #                   for node in doc.xpath("//field[@name='registration_no']"):
- #                       node.set('invisible', 'True')
- #                       doc.remove(node)
- #                   for node in doc.xpath("//field[@name='amount_untaxed']"):
- #                       node.set('invisible', 'True')
- #                       doc.remove(node)
- #                   for node in doc.xpath("//field[@name='origin']"):
- #                       node.set('invisible', 'True')
- #                       doc.remove(node)
- #               if partner_string == 'Wakf Name':
- #                   for node in doc.xpath("//field[@name='appli_no']"):
- #                       node.set('invisible', 'True')
- #                       doc.remove(node)
- #                   for node in doc.xpath("//field[@name='amount_untaxed']"):
- #                       node.set('invisible', 'True')
- #                       doc.remove(node)
- #                   for node in doc.xpath("//field[@name='origin']"):
- #                       node.set('invisible', 'True')
- #                       doc.remove(node)
- #           res['arch'] = etree.tostring(doc)
- #           
-  #      return res
+       
+           
+        if view_type == 'tree':
+            partner_string = _('Wakf Name')
+            if context.get('type', 'out_invoice') in ('in_invoice', 'in_refund'):
+                partner_string = _('Applicant Name')
+                for node in doc.xpath("//field[@name='reference']"):
+                    node.set('invisible', '0')
+            for node in doc.xpath("//field[@name='partner_id']"):
+                node.set('string', partner_string)
+                if partner_string == 'Applicant Name':
+                    for node in doc.xpath("//field[@name='registration_no']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                    for node in doc.xpath("//field[@name='amount_untaxed']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                    for node in doc.xpath("//field[@name='origin']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                    for node in doc.xpath("//field[@name='company_id']"):
+                        node.set('string', 'Office')
+                if partner_string == 'Wakf Name':
+                    for node in doc.xpath("//field[@name='appli_no']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                    for node in doc.xpath("//field[@name='amount_untaxed']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                    for node in doc.xpath("//field[@name='origin']"):
+                        node.set('invisible', 'True')
+                        doc.remove(node)
+                    for node in doc.xpath("//field[@name='company_id']"):
+                        node.set('string', 'Office')
+            res['arch'] = etree.tostring(doc)
+            
+        return res
     
     def _amount_all(self, cr, uid, ids, name, args, context=None):
         res = {}
@@ -319,6 +322,7 @@ class invoice_inherit(osv.osv):
             year = rec.year
             amount = rec.amount
             key = rec.key
+            date_sanction = rec.date_sanction
             ###########################################
         if is_assessment and type == 'out_invoice' and assessment_type == 'assessment':  ### Direct Assessments
             search_ids = self.pool.get('assessment.window').search(cr,uid,[('name','=',reg_no),('acc_year','=',acc_year),('assess_year','=',assess_year)])
@@ -334,12 +338,18 @@ class invoice_inherit(osv.osv):
             search_ids = self.pool.get('revenue.recovery').search(cr,uid,[('reg_no','=',reg_no),('assess_year','=',assess_year)])
             self.pool.get('revenue.recovery').write(cr,uid,search_ids,{'state':'execute'},context=None)
         if is_sws and head_name == "Education Loan":   #### Education Loan
-            stat_assess = 'revolving'
+            list_change = []
+            key = "open"
             search_ids = self.pool.get('res.partner').search(cr,uid,[('appli_no','=',application_no)])
             if search_ids:
-                browse_ids = self.pool.get('res.partner').browse(cr,uid,search_ids)
-                amount_sanctioned = browse_ids.amount_sanction 
-            self.pool.get('res.partner').write(cr,uid,search_ids,{'state1':'paid'},context=None)
+                for browse_ids in self.pool.get('res.partner').browse(cr,uid,search_ids):
+                    id_self_of = browse_ids.id
+                    for lines in browse_ids.education_byyear:
+                        if date_sanction == lines.date_from:
+                            line_id = lines.id
+                            list_change.append((1,line_id,{'state':'returned'}))
+                            self.pool.get('res.partner').write(cr,uid,id_self_of,{'education_byyear':list_change},context=None)
+                            id_store = id_self_of
         if is_sws and type == 'in_invoice' and head_name != "Pension":   ### Other SWS non re-fundable
             search_ids = self.pool.get('res.partner').search(cr,uid,[('appli_no','=',application_no)])
             self.pool.get('res.partner').write(cr,uid,search_ids,{'state1':'finished'},context=None)
@@ -1096,6 +1106,11 @@ class assessment_window(osv.osv):
             'target': 'new',
             'nodestroy': True,}
     
+    ##################################################################################################
+    #                                    CANNOT DELETE ASSESSMENT RECORDS                            #
+    #                                                TESTED
+    ##################################################################################################
+    
     #def unlink(self, cr, uid, ids, context=None):
     #    if context is None:
     #        context = {}
@@ -1105,6 +1120,20 @@ class assessment_window(osv.osv):
     #            raise osv.except_osv(_('Invalid Action!'), _('Cannot delete an Assessment Record which is in state \'%s\'.') %(rec.state,))
     #    return super(assessment_window, self).unlink(cr, uid, ids, context=context)
     
+    ###################################################################################################
+    #                                CHECKING UNIQUE RECORDS                                          #
+    #                                        TESTED
+    ###################################################################################################
+    #def check_existance(self, cr, uid, ids, context=None):
+    #    self_obj = self.browse(cr, uid, ids[0], context=context)
+    #    field1 = self_obj.name
+    #    field2 = self_obj.acc_year.id
+    #    field3 = self_obj.revised
+    #    search_ids = self.search(cr, uid, [('name', '=', field1),('acc_year', '=' , field2),('revised', '=' , field3)], context=context)
+    #    res = True
+    #    if len(search_ids) > 1:
+    #        res = False
+    #    return res
    
     
     _columns = {
@@ -1156,8 +1185,8 @@ class assessment_window(osv.osv):
                     ('invoiced', 'Invoiced'),            
                     ('showcause', 'Showcause send'),
                     ('RR', 'RR Issued'),
-                    ('appeal', 'Appeal Received'),
-                    ('re-assess', 'Re-Assessment'),
+                    ('appeal', 'Review Request'),
+                    ('re-assess', 'Review'),
                     ('completed', 'Completed'),
                     ],'status', readonly=False),
                 'company_id': fields.many2one('res.company', 'Company', required=False)
@@ -1168,6 +1197,8 @@ class assessment_window(osv.osv):
                  'assess_year': _deflt_ass_year,
                  'company_id': lambda self,cr,uid,ctx: self.pool['res.company']._company_default_get(cr,uid,object='assessment.window',context=ctx)
                 }
+    #_constraints = [(check_existance,'Combination already exist', ['name','acc_year','revised'])]
+   
 assessment_window()
 ####################################################################################################################################
 class invoice_line_inherit(osv.osv):
